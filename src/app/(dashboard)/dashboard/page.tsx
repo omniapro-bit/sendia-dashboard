@@ -266,7 +266,7 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stat cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <StatCard label="Aujourd'hui"      value={stats?.today.processed ?? 0} color="blue" />
             <StatCard label="Cette semaine"    value={stats?.week.processed  ?? 0} color="purple" />
             <StatCard label="Ce mois"          value={stats?.month.processed ?? 0} color="blue" />
@@ -279,11 +279,6 @@ export default function DashboardPage() {
               subtitle="envoyés + rejetés / total"
             />
           </div>
-
-          {/* Taux de traitement detail banner */}
-          {stats && stats.month.processed > 0 && derived.responseRate && (
-            <RateBanner stats={stats} rate={derived.responseRate} />
-          )}
 
           {/* Category counters */}
           {derived.categoryCounters.length > 0 && (
