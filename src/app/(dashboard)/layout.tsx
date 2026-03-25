@@ -42,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="font-bold text-[#f0f0f5]">Sendia</span>
         </header>
         <main className="flex-1 overflow-y-auto relative z-10">
-          <div className="max-w-[1100px] mx-auto">
+          <div className="max-w-[1100px] mx-auto w-full">
           {children}
           </div>
         </main>

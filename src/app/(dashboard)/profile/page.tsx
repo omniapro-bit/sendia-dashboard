@@ -108,7 +108,7 @@ export default function ProfilePage() {
   const isActive = form.is_active;
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 md:px-8 py-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Mon profil</h1>
         <p className="text-[#9999b0] mt-1">Personnalisez le comportement de votre assistant Sendia.</p>
@@ -122,7 +122,7 @@ export default function ProfilePage() {
           </p>
         </div>
         <Toggle checked={isActive} onChange={handleToggle} disabled={toggling}
-          label={isActive ? "Actif" : "Inactif"} />
+          label={isActive ? "Activer" : "Désactiver"} />
       </div>
 
       <form onSubmit={handleSave}>

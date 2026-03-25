@@ -1,10 +1,9 @@
 import { type HTMLAttributes } from "react";
-
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: "sm" | "md" | "lg";
 }
-
-export function Card({ padding = "md", className = "", children, ...rest }: CardProps) {
+export function Card(props: CardProps) {
+  const { padding = "md", className = "", children, ...rest } = props;
   const p = padding === "sm" ? "p-4" : padding === "lg" ? "p-8" : "p-6";
   return (
     <div

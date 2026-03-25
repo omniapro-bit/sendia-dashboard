@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
@@ -9,41 +10,50 @@ import { EmailTable } from "@/components/EmailTable";
 import { Spinner } from "@/components/ui/Spinner";
 import { Toggle } from "@/components/ui/Toggle";
 
+// ---------------------------------------------------------------------------
+// Types & constants
+// ---------------------------------------------------------------------------
+
 type StatusFilter = "tous" | "SENT" | "REJECTED" | "PENDING";
 type CategoryFilter = "tous" | "devis" | "facture" | "support" | "lead" | "relance";
+
 type FilterOption<T extends string> = { value: T; label: string };
 
-const statusFilters: FilterOption<StatusFilter>[] = [
-  { value: "tous", label: "Tous" },
-  { value: "SENT", label: "Envoyés" },
+const STATUS_FILTER_OPTIONS: FilterOption<StatusFilter>[] = [
+  { value: "tous",     label: "Tous" },
+  { value: "SENT",     label: "Envoyés" },
   { value: "REJECTED", label: "Rejetés" },
-  { value: "PENDING", label: "En attente" },
+  { value: "PENDING",  label: "En attente" },
 ];
-
-const categoryFilters: FilterOption<CategoryFilter>[] = [
-  { value: "tous", label: "Tous" },
-  { value: "devis", label: "Devis" },
+const CATEGORY_FILTER_OPTIONS: FilterOption<CategoryFilter>[] = [
+  { value: "tous",    label: "Tous" },
+  { value: "devis",   label: "Devis" },
   { value: "facture", label: "Facture" },
   { value: "support", label: "Support" },
-  { value: "lead", label: "Lead" },
+  { value: "lead",    label: "Lead" },
   { value: "relance", label: "Relance" },
 ];
 
 type ChipConfig = { key: string; label: string; color: string };
 type CategoryCounter = ChipConfig & { count: number };
 
-const chipConfig: ChipConfig[] = [
-  { key: "devis", label: "Devis", color: "#fb923c" },
-  { key: "facture", label: "Factures", color: "#a78bfa" },
-  { key: "support", label: "Support", color: "#6b85ff" },
-  { key: "lead", label: "Lead", color: "#34d399" },
-  { key: "relance", label: "Relance", color: "#facc15" },
-  { key: "commande", label: "Commande", color: "#2dd4bf" },
-  { key: "general", label: "Général", color: "#9999b0" },
-  { key: "question", label: "Question", color: "#9999b0" },
-  { key: "urgent", label: "Urgent", color: "#f87171" },
-  { key: "suivi", label: "Suivi", color: "#9999b0" },
+const FALLBACK_CHIP_COLOR = "#9999b0";
+const CHIP_CONFIG: ChipConfig[] = [
+    { key: "devis",    label: "Devis",    color: "#fb923c" },
+    { key: "facture",  label: "Factures", color: "#a78bfa" },
+    { key: "support",  label: "Support",  color: "#6b85ff" },
+    { key: "lead",     label: "Lead",     color: "#34d399" },
+    { key: "relance",  label: "Relance",  color: "#facc15" },
+    { key: "commande", label: "Commande", color: "#2dd4bf" },
+    { key: "general",  label: "Général",  color: "#9999b0" },
+    { key: "question", label: "Question", color: "#9999b0" },
+    { key: "urgent",   label: "Urgent",   color: "#f87171" },
+    { key: "suivi",    label: "Suivi",    color: "#9999b0" },
 ];
+
+// ---------------------------------------------------------------------------
+// Pure helpers
+// ---------------------------------------------------------------------------
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -60,13 +70,13 @@ function buildCategoryCounters(emails: Email[]): CategoryCounter[] {
     }
   }
   const result: CategoryCounter[] = [];
-  for (const cfg of chipConfig) {
+  for (const cfg of CHIP_CONFIG) {
     const count = counts.get(cfg.key) ?? 0;
     if (count > 0) result.push({ ...cfg, count });
   }
   for (const [key, count] of counts.entries()) {
-    if (!chipConfig.find(c => c.key === key)) {
-      result.push({ key, label: key, count, color: "#9999b0" });
+    if (!CHIP_CONFIG.find(c => c.key === key)) {
+      result.push({ key, label: key, count, color: FALLBACK_CHIP_COLOR });
     }
   }
   return result;
@@ -81,32 +91,56 @@ function computeResponseRate(stats: ClientStats): string {
 
 function applyFilters(
   emails: Email[],
-  status: StatusFilter,
-  category: CategoryFilter,
+  statusFilter: StatusFilter,
+  categoryFilter: CategoryFilter,
 ): Email[] {
   return emails.filter(e => {
-    const statusOk = status === "tous" || e.status === status;
-    const catOk = category === "tous" || e.category === category;
+    const statusOk = statusFilter === "tous" || e.status === statusFilter;
+    const catOk = categoryFilter === "tous" || e.category === categoryFilter;
     return statusOk && catOk;
   });
 }
 
-function FilterButton(props: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  const bg = props.active
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function FilterButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  const style = active
     ? { background: "#4f6ef7", color: "#fff" }
     : { background: "#1c1c28", color: "#9999b0", border: "1px solid #2a2a3a" };
   return (
-    <button onClick={props.onClick} className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150" style={bg}>
-      {props.children}
+    <button
+      onClick={onClick}
+      className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150"
+      style={style}
+    >
+      {children}
     </button>
   );
 }
 
-function FilterGroup<T extends string>(props: { options: FilterOption<T>[]; active: T; onChange: (v: T) => void }) {
+function FilterGroup<T extends string>({
+  options,
+  active,
+  onChange,
+}: {
+  options: FilterOption<T>[];
+  active: T;
+  onChange: (v: T) => void;
+}) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {props.options.map(f => (
-        <FilterButton key={f.value} active={props.active === f.value} onClick={() => props.onChange(f.value)}>
+      {options.map(f => (
+        <FilterButton key={f.value} active={active === f.value} onClick={() => onChange(f.value)}>
           {f.label}
         </FilterButton>
       ))}
@@ -114,42 +148,57 @@ function FilterGroup<T extends string>(props: { options: FilterOption<T>[]; acti
   );
 }
 
-function CategoryChip(props: { counter: CategoryCounter }) {
-  const c = props.counter;
+function CategoryChip({ counter }: { counter: CategoryCounter }) {
   return (
-    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: `${c.color}14`, border: `1px solid ${c.color}30` }}>
-      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.color }} />
-      <span className="text-xs font-semibold" style={{ color: c.color }}>{c.label}</span>
-      <span className="text-xs font-bold ml-0.5" style={{ color: c.color }}>{c.count}</span>
+    <div
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+      style={{
+        background: `${counter.color}14`,
+        border: `1px solid ${counter.color}30`,
+      }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: counter.color }} />
+      <span className="text-xs font-semibold" style={{ color: counter.color }}>
+        {counter.label}
+      </span>
+      <span className="text-xs font-bold ml-0.5" style={{ color: counter.color }}>
+        {counter.count}
+      </span>
     </div>
   );
 }
 
-function RateBanner(props: { stats: ClientStats; rate: string }) {
-  const { stats, rate } = props;
+function RateBanner({ stats, rate }: { stats: ClientStats; rate: string }) {
   const pct = rate !== "—"
     ? Math.min(100, (stats.month.sent + stats.month.rejected) / stats.month.processed * 100)
     : 0;
   return (
-    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6">
-      <div className="flex items-center justify-between gap-6">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-[#f0f0f5]">Taux de traitement ce mois</p>
-          <p className="text-xs text-[#9999b0] mt-0.5">
-            {stats.month.sent + stats.month.rejected} email(s) traités sur {stats.month.processed} reçus
-          </p>
-          <div className="mt-3 h-2 bg-[#1c1c28] rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-[#34d399] transition-all duration-500" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-4xl font-extrabold text-[#34d399] leading-none">{rate}</p>
+    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p className="text-sm font-semibold text-[#f0f0f5]">Taux de traitement ce mois</p>
+        <p className="text-xs text-[#9999b0] mt-0.5">
+          {stats.month.sent + stats.month.rejected} email(s) traités sur {stats.month.processed} reçus
+        </p>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <p className="text-3xl font-extrabold text-[#34d399] leading-none">{rate}</p>
           <p className="text-xs text-[#66667a] mt-1">de traitement</p>
+        </div>
+        <div className="w-32 h-2 bg-[#1c1c28] rounded-full overflow-hidden hidden sm:block">
+          <div
+            className="h-full rounded-full bg-[#34d399] transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function DashboardPage() {
   const { profile, refreshProfile } = useAuth();
@@ -173,24 +222,21 @@ export default function DashboardPage() {
     try {
       await api.toggleActive(val);
       await refreshProfile();
-      toast(val ? "Sendia activé !" : "Sendia désactivé.", "success");
+      toast(val ? "Sendia activé !" : "Sendia désactivé.", "success");
     } catch {
       toast("Erreur lors du changement de statut", "error");
     } finally {
       setToggling(false);
     }
   }
-
   const derived = useMemo(() => ({
     categoryCounters: buildCategoryCounters(emails),
     filteredEmails: applyFilters(emails, statusFilter, categoryFilter),
     responseRate: stats ? computeResponseRate(stats) : null,
   }), [emails, statusFilter, categoryFilter, stats]);
-
   const name = profile?.client_name ?? "vous";
-
   return (
-    <div className="px-6 py-8">
+    <div className="px-4 md:px-8 py-8 max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">{greeting()}, {name} 👋</h1>
@@ -219,34 +265,38 @@ export default function DashboardPage() {
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
         <>
-          {/* Volume stats row */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <StatCard label="Aujourd’hui" value={stats?.today.processed ?? 0} color="blue" />
-            <StatCard label="Cette semaine" value={stats?.week.processed ?? 0} color="purple" />
-            <StatCard label="Ce mois" value={stats?.month.processed ?? 0} color="blue" />
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            <StatCard label="Aujourd'hui"      value={stats?.today.processed ?? 0} color="blue" />
+            <StatCard label="Cette semaine"    value={stats?.week.processed  ?? 0} color="purple" />
+            <StatCard label="Ce mois"          value={stats?.month.processed ?? 0} color="blue" />
+            <StatCard label="Envoyés / mois"   value={stats?.month.sent      ?? 0} color="green" />
+            <StatCard label="Rejetés / mois"   value={stats?.month.rejected  ?? 0} color="red" />
+            <StatCard
+              label="Taux de traitement"
+              value={derived.responseRate ?? "—"}
+              color="green"
+              subtitle="envoyés + rejetés / total"
+            />
           </div>
 
-          {/* Performance row: sent, rejected, category breakdown */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <StatCard label="Envoyés / mois" value={stats?.month.sent ?? 0} color="green" />
-            <StatCard label="Rejetés / mois" value={stats?.month.rejected ?? 0} color="red" />
-            {derived.categoryCounters.length > 0 && (
-              <div className="relative overflow-hidden card-hover" style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 20, padding: "20px 22px 22px" }}>
-                <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: 12 }}>
-                  Répartition
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {derived.categoryCounters.map(counter => (
-                    <CategoryChip key={counter.key} counter={counter} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Response rate banner */}
-          {stats && derived.responseRate && (
+          {/* Taux de traitement detail banner */}
+          {stats && stats.month.processed > 0 && derived.responseRate && (
             <RateBanner stats={stats} rate={derived.responseRate} />
+          )}
+
+          {/* Category counters */}
+          {derived.categoryCounters.length > 0 && (
+            <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-4 mb-6">
+              <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-3">
+                Répartition par catégorie
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {derived.categoryCounters.map(counter => (
+                  <CategoryChip key={counter.key} counter={counter} />
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Email table with filters */}
@@ -254,9 +304,17 @@ export default function DashboardPage() {
             <div className="px-6 py-4 border-b border-[#2a2a3a]">
               <h2 className="text-base font-semibold text-[#f0f0f5] mb-3">Emails récents</h2>
               <div className="flex flex-wrap gap-3">
-                <FilterGroup options={statusFilters} active={statusFilter} onChange={setStatusFilter} />
+                <FilterGroup
+                  options={STATUS_FILTER_OPTIONS}
+                  active={statusFilter}
+                  onChange={setStatusFilter}
+                />
                 <div className="w-px bg-[#2a2a3a] self-stretch hidden sm:block" />
-                <FilterGroup options={categoryFilters} active={categoryFilter} onChange={setCategoryFilter} />
+                <FilterGroup
+                  options={CATEGORY_FILTER_OPTIONS}
+                  active={categoryFilter}
+                  onChange={setCategoryFilter}
+                />
               </div>
             </div>
             <div className="px-2">
@@ -267,6 +325,26 @@ export default function DashboardPage() {
                 Aucun email ne correspond aux filtres sélectionnés.
               </p>
             )}
+          </div>
+
+          {/* Quick links */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { href: "/documents", label: "Mes documents",  desc: `${stats?.rag_documents ?? 0} document(s)` },
+              { href: "/profile",   label: "Mon profil",     desc: "Personnaliser Sendia" },
+              { href: "/settings",  label: "Paramètres",     desc: "Compte & sécurité" },
+            ].map(a => (
+              <Link
+                key={a.href}
+                href={a.href}
+                className="bg-[#16161f] border border-[#2a2a3a] hover:border-[#4f6ef7]/40 rounded-2xl p-4 flex flex-col gap-1 transition-colors group"
+              >
+                <p className="font-semibold text-[#f0f0f5] group-hover:text-[#6b85ff] transition-colors">
+                  {a.label}
+                </p>
+                <p className="text-xs text-[#66667a]">{a.desc}</p>
+              </Link>
+            ))}
           </div>
         </>
       )}

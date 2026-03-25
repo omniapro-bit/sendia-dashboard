@@ -1,26 +1,27 @@
 "use client";
 import { type SelectHTMLAttributes } from "react";
-import { FormField, FieldAnnotations, SelectOption, fieldId, borderClass } from "./FormField";
-
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement>, FieldAnnotations {
+export interface SelectOption { value: string; label: string }
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  error?: string;
   options: SelectOption[];
 }
-
-export type { SelectOption };
-
 export function Select(props: SelectProps) {
-  const { label, error, hint, options, className = "", id, ...rest } = props;
-  const fid = fieldId(id, label);
-
+  const { label, error, options, className = "", id, ...rest } = props;
+  const selectId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
   return (
-    <FormField fieldId={fid} label={label} error={error} hint={hint}>
+    <div className="flex flex-col gap-1.5">
+      {label && (
+        <label htmlFor={selectId} className="text-sm font-medium text-[#9999b0]">{label}</label>
+      )}
       <select
         {...rest}
-        id={fid}
-        className={`w-full px-4 py-2.5 rounded-xl bg-[#12121a] border text-[#f0f0f5] text-sm transition-colors duration-150 outline-none focus:ring-2 focus:ring-[#4f6ef7]/30 ${borderClass(error)} ${className}`}
+        id={selectId}
+        className={`w-full px-4 py-2.5 rounded-xl bg-[#12121a] border text-[#f0f0f5] text-sm transition-colors outline-none focus:ring-2 focus:ring-[#4f6ef7]/40 ${error ? "border-[#f87171]/60" : "border-[#2a2a3a] focus:border-[#4f6ef7]/60"} ${className}`}
       >
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-    </FormField>
+      {error && <p className="text-xs text-[#f87171]">{error}</p>}
+    </div>
   );
 }

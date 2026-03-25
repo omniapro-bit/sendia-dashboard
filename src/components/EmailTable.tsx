@@ -2,25 +2,53 @@ import type { Email } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 
 type BadgeVariant = "green" | "red" | "orange" | "purple" | "blue" | "yellow" | "teal" | "gray";
-type Cfg = { variant: BadgeVariant; label: string };
 
-function cfg(key: string): Cfg {
-  switch (key) {
-    case "SENT":      return { variant: "green",  label: "Envoyé" };
-    case "REJECTED":  return { variant: "red",    label: "Rejeté" };
-    case "PENDING":   return { variant: "orange", label: "En attente" };
-    case "CANCELLED": return { variant: "gray",   label: "Annulé" };
-    case "devis":     return { variant: "orange", label: "Devis" };
-    case "facture":   return { variant: "purple", label: "Facture" };
-    case "lead":      return { variant: "green",  label: "Lead" };
-    case "support":   return { variant: "blue",   label: "Support" };
-    case "urgent":    return { variant: "red",    label: "Urgent" };
-    case "relance":   return { variant: "yellow", label: "Relance" };
-    case "commande":  return { variant: "teal",   label: "Commande" };
-    case "suivi":     return { variant: "gray",   label: "Suivi" };
-    case "question":  return { variant: "gray",   label: "Question" };
-    case "general":   return { variant: "gray",   label: "Général" };
-    default:          return { variant: "gray",   label: key };
+function statusVariant(status: string): BadgeVariant {
+  switch (status) {
+    case "SENT":     return "green";
+    case "REJECTED": return "red";
+    case "PENDING":  return "orange";
+    case "CANCELLED": return "gray";
+    default:         return "gray";
+  }
+}
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case "SENT":      return "Envoyé";
+    case "REJECTED":  return "Rejeté";
+    case "PENDING":   return "En attente";
+    case "CANCELLED": return "Annulé";
+    default:          return status;
+  }
+}
+
+function categoryVariant(category: string): BadgeVariant {
+  switch (category) {
+    case "devis":    return "orange";
+    case "facture":  return "purple";
+    case "lead":     return "green";
+    case "support":  return "blue";
+    case "urgent":   return "red";
+    case "relance":  return "yellow";
+    case "commande": return "teal";
+    default:         return "gray";
+  }
+}
+
+function categoryLabel(category: string): string {
+  switch (category) {
+    case "lead":     return "Lead";
+    case "devis":    return "Devis";
+    case "commande": return "Commande";
+    case "facture":  return "Facture";
+    case "relance":  return "Relance";
+    case "suivi":    return "Suivi";
+    case "support":  return "Support";
+    case "question": return "Question";
+    case "general":  return "Général";
+    case "urgent":   return "Urgent";
+    default:         return category;
   }
 }
 
@@ -30,47 +58,27 @@ function formatDate(iso: string): string {
   });
 }
 
-function thStyle(width?: string): React.CSSProperties {
-  return {
-    textAlign: "left",
-    fontSize: "0.72rem",
-    fontWeight: 700,
-    color: "#66667a",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    padding: "0 14px 12px",
-    borderBottom: "1px solid #2a2a3a",
-    width: width,
-    whiteSpace: "nowrap",
-  };
+function thStyle(extra?: React.CSSProperties): React.CSSProperties {
+  return { textAlign: "left", fontSize: "0.78rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.4px", padding: "0 12px 12px", borderBottom: "1px solid #2a2a3a", ...extra };
 }
 
-export function EmailTable(props: { emails: Email[] }) {
-  const { emails } = props;
-
+export function EmailTable({ emails }: { emails: Email[] }) {
   if (emails.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: "48px 24px", color: "#66667a" }}>
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          style={{ margin: "0 auto 12px", opacity: 0.35, display: "block" }}>
-          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+          style={{ margin: "0 auto 14px", opacity: 0.4, display: "block" }}>
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        <p style={{ fontSize: "0.88rem" }}>Aucun email traité pour le moment.</p>
+        <p style={{ fontSize: "0.9rem" }}>Aucun email traité pour le moment.</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-        <colgroup>
-          <col style={{ width: "22%" }} />
-          <col style={{ width: "38%" }} />
-          <col style={{ width: "14%" }} className="hidden md:table-column" />
-          <col style={{ width: "16%" }} className="hidden md:table-column" />
-          <col style={{ width: "10%" }} />
-        </colgroup>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
             <th style={thStyle()}>Expéditeur</th>
@@ -81,41 +89,43 @@ export function EmailTable(props: { emails: Email[] }) {
           </tr>
         </thead>
         <tbody>
-          {emails.map(email => {
-            const sc = cfg(email.status);
-            const cc = email.category ? cfg(email.category) : null;
-            return (
-              <tr
-                key={email.id}
-                style={{ borderBottom: "1px solid rgba(42,42,58,0.5)", transition: "background 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#1c1c28")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-              >
-                <td style={{ padding: "13px 14px", verticalAlign: "middle" }}>
-                  <p style={{ fontWeight: 600, color: "#f0f0f5", fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {email.from_name || email.from_email}
-                  </p>
-                  <p style={{ fontSize: "0.72rem", color: "#66667a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>
-                    {email.from_email}
-                  </p>
-                </td>
-                <td style={{ padding: "13px 14px", verticalAlign: "middle" }}>
-                  <p style={{ color: "#b0b0c0", fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {email.subject}
-                  </p>
-                </td>
-                <td style={{ padding: "13px 14px", verticalAlign: "middle" }} className="hidden md:table-cell">
-                  {cc && <Badge variant={cc.variant} dot>{cc.label}</Badge>}
-                </td>
-                <td style={{ padding: "13px 14px", color: "#66667a", fontSize: "0.82rem", whiteSpace: "nowrap", verticalAlign: "middle" }} className="hidden md:table-cell">
-                  {formatDate(email.created_at)}
-                </td>
-                <td style={{ padding: "13px 14px", verticalAlign: "middle" }}>
-                  <Badge variant={sc.variant} dot>{sc.label}</Badge>
-                </td>
-              </tr>
-            );
-          })}
+          {emails.map(email => (
+            <tr
+              key={email.id}
+              style={{ transition: "background 0.15s", borderBottom: "1px solid rgba(42,42,58,0.5)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#1c1c28")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >
+              <td style={{ padding: "14px 12px", verticalAlign: "middle" }}>
+                <p style={{ fontWeight: 500, color: "#f0f0f5", fontSize: "0.88rem", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {email.from_name || email.from_email}
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "#66667a", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {email.from_email}
+                </p>
+              </td>
+              <td style={{ padding: "14px 12px", verticalAlign: "middle" }}>
+                <p style={{ color: "#9999b0", fontSize: "0.88rem", maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {email.subject}
+                </p>
+              </td>
+              <td style={{ padding: "14px 12px", verticalAlign: "middle" }} className="hidden md:table-cell">
+                {email.category && (
+                  <Badge variant={categoryVariant(email.category)} dot>
+                    {categoryLabel(email.category)}
+                  </Badge>
+                )}
+              </td>
+              <td style={{ padding: "14px 12px", color: "#66667a", fontSize: "0.88rem", whiteSpace: "nowrap", verticalAlign: "middle" }} className="hidden md:table-cell">
+                {formatDate(email.created_at)}
+              </td>
+              <td style={{ padding: "14px 12px", verticalAlign: "middle" }}>
+                <Badge variant={statusVariant(email.status)} dot>
+                  {statusLabel(email.status)}
+                </Badge>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
