@@ -16,6 +16,7 @@ export interface ClientProfile {
   feature_notification_mode: string;
   feature_rag_enabled: boolean;
   whatsapp_number?: string;
+  email_provider?: string;
 }
 
 export type StatPeriod = { processed: number; sent: number; rejected: number };

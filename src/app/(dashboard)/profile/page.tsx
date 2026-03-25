@@ -136,7 +136,8 @@ export default function ProfilePage() {
             <Input label="Nom de l'entreprise" value={form.company_name}
               onChange={e => set("company_name", e.target.value)} placeholder="Acme SAS" />
             <Input label="Numéro WhatsApp" value={form.whatsapp_number}
-              onChange={e => set("whatsapp_number", e.target.value)} placeholder="+33 6 12 34 56 78" />
+              onChange={e => set("whatsapp_number", e.target.value.replace(/[^0-9]/g, ""))} placeholder="33664365030"
+              hint="Format international sans + ni espaces (ex: 33664365030)" />
           </div>
         </div>
 

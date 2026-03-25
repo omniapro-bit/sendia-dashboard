@@ -69,4 +69,12 @@ export const api = {
     apiMutate<{ success: boolean; chunks_ingested: number }>(
       "POST", "/rag/ingest", { file_name, content }
     ),
+  getOnboardingStatus: () =>
+    apiMutate<{
+      email_verified: boolean;
+      profile_complete: boolean;
+      email_connected: boolean;
+      documents_uploaded: boolean;
+      ready: boolean;
+    }>("POST", "/onboarding-status", {}),
 };

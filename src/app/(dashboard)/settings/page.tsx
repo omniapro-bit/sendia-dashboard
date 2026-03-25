@@ -30,7 +30,6 @@ export default function SettingsPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
     setPasswordError("");
@@ -195,18 +194,12 @@ export default function SettingsPage() {
             <p className="text-sm font-medium text-[#f0f0f5]">Supprimer mon compte</p>
             <p className="text-xs text-[#66667a] mt-0.5">Toutes vos données seront définitivement supprimées. Cette action est irréversible.</p>
           </div>
-          <Button variant="danger" size="md" loading={deleting} onClick={async () => {
-            if (!confirm("Êtes-vous sûr de vouloir supprimer votre compte ? Toutes vos données seront perdues définitivement.")) return;
-            if (!confirm("Dernière confirmation : cette action est IRRÉVERSIBLE. Continuer ?")) return;
-            setDeleting(true);
-            try {
-              toast("Pour supprimer votre compte, veuillez contacter support@getsendia.com", "info");
-            } finally {
-              setDeleting(false);
-            }
-          }}>
-            Supprimer mon compte
-          </Button>
+          <a
+            href="mailto:support@getsendia.com?subject=Demande%20de%20suppression%20de%20compte&body=Bonjour%2C%0A%0AJe%20souhaite%20supprimer%20mon%20compte%20Sendia.%0A%0AEmail%20du%20compte%20%3A%20%0A%0AMerci."
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#f87171]/10 border border-[#f87171]/30 text-[#f87171] hover:bg-[#f87171]/20 transition-colors no-underline"
+          >
+            Contacter le support
+          </a>
         </div>
       </div>
     </div>

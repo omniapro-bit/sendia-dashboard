@@ -1,5 +1,8 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import { Spinner } from "@/components/ui/Spinner";
 
 const GMAIL_AUTH_URL =
   "https://accounts.google.com/o/oauth2/v2/auth?" +
@@ -41,10 +44,20 @@ function CheckIcon() {
 
 export default function ConnectPage() {
   const { profile } = useAuth();
+  const [emailConnected, setEmailConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const provider = profile?.email_provider as string | undefined;
 
-  const hasGmail = Boolean(profile && ("gmail_access_token" in profile) && (profile as Record<string, unknown>).gmail_access_token);
-  const hasOutlook = Boolean(profile && ("outlook_access_token" in profile) && (profile as Record<string, unknown>).outlook_access_token);
-  const isConnected = hasGmail || hasOutlook;
+  useEffect(() => {
+    api.getOnboardingStatus()
+      .then(s => setEmailConnected(s.email_connected))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const hasGmail = emailConnected && provider === "gmail";
+  const hasOutlook = emailConnected && provider === "outlook";
+  const isConnected = emailConnected;
 
   return (
     <div className="px-6 py-8 max-w-2xl mx-auto">
