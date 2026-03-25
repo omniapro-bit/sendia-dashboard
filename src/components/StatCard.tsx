@@ -2,19 +2,34 @@ interface StatCardProps {
   label: string;
   value: number | string;
   color?: "green" | "blue" | "orange" | "red" | "purple";
+  subtitle?: string;
 }
-function statColor(c: StatCardProps["color"]): string {
-  if (c === "green") return "text-emerald-400";
-  if (c === "orange") return "text-orange-400";
-  if (c === "red") return "text-red-400";
-  if (c === "purple") return "text-violet-400";
-  return "text-[#6b85ff]";
+
+function valueColor(c: NonNullable<StatCardProps["color"]>): string {
+  switch (c) {
+    case "green":  return "#34d399";
+    case "orange": return "#fb923c";
+    case "red":    return "#f87171";
+    case "purple": return "#a78bfa";
+    default:       return "#6b85ff";
+  }
 }
-export function StatCard({ label, value, color = "blue" }: StatCardProps) {
+
+export function StatCard({ label, value, color = "blue", subtitle }: StatCardProps) {
   return (
-    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 flex flex-col gap-2">
-      <p className="text-xs font-medium text-[#66667a] uppercase tracking-wide">{label}</p>
-      <p className={`text-3xl font-bold ${statColor(color)}`}>{value}</p>
+    <div
+      className={`stat-border-${color} relative overflow-hidden card-hover`}
+      style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: "20px", padding: "22px 24px" }}
+    >
+      <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
+        {label}
+      </p>
+      <p style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1, color: valueColor(color) }}>
+        {value}
+      </p>
+      {subtitle && (
+        <p style={{ fontSize: "0.8rem", color: "#66667a", marginTop: "6px" }}>{subtitle}</p>
+      )}
     </div>
   );
 }

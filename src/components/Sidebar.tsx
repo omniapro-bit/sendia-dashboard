@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { NAV_ITEMS, type NavItem } from "@/components/nav-items";
+
 function NavIcon({ d }: { d: string }) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -13,19 +14,58 @@ function NavIcon({ d }: { d: string }) {
     </svg>
   );
 }
+
+function navLinkStyle(active: boolean): React.CSSProperties {
+  return {
+    display: "flex", alignItems: "center", gap: 12,
+    padding: "11px 12px", borderRadius: 12,
+    fontSize: "0.9rem", fontWeight: 500, width: "100%",
+    transition: "all 0.2s ease", textDecoration: "none",
+    background: active ? "rgba(79,110,247,0.12)" : "transparent",
+    color: active ? "#6b85ff" : "#9999b0",
+    borderLeft: active ? "2px solid #4f6ef7" : "2px solid transparent",
+  };
+}
+
 function NavLink({ item, active }: { item: NavItem; active: boolean }) {
-  const base = "flex items-center gap-3 px-3 py-[11px] rounded-xl text-[0.9rem] font-medium w-full transition-all duration-150";
-  const cls = active
-    ? `${base} text-[#6b85ff]`
-    : `${base} text-[#9999b0] hover:text-[#f0f0f5]`;
-  const style = active ? { background: "rgba(79,110,247,0.15)" } : undefined;
+  function enter(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!active) { e.currentTarget.style.background = "#16161f"; e.currentTarget.style.color = "#f0f0f5"; }
+  }
+  function leave(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#9999b0"; }
+  }
   return (
-    <Link href={item.href} className={cls} style={style}>
-      <span className="shrink-0 opacity-80"><NavIcon d={item.icon} /></span>
+    <Link href={item.href} style={navLinkStyle(active)} onMouseEnter={enter} onMouseLeave={leave}>
+      <span style={{ flexShrink: 0, opacity: active ? 1 : 0.7 }}><NavIcon d={item.icon} /></span>
       {item.label}
     </Link>
   );
 }
+
+function LogoutButton({ onSignOut }: { onSignOut: () => void }) {
+  function enter(e: React.MouseEvent<HTMLButtonElement>) {
+    e.currentTarget.style.background = "rgba(248,113,113,0.1)";
+    e.currentTarget.style.color = "#f87171";
+  }
+  function leave(e: React.MouseEvent<HTMLButtonElement>) {
+    e.currentTarget.style.background = "none";
+    e.currentTarget.style.color = "#66667a";
+  }
+  return (
+    <button
+      onClick={onSignOut}
+      onMouseEnter={enter}
+      onMouseLeave={leave}
+      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, background: "none", border: "none", color: "#66667a", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 500, cursor: "pointer", width: "100%", transition: "all 0.2s" }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+      </svg>
+      Se déconnecter
+    </button>
+  );
+}
+
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -41,39 +81,29 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     return pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
   }
   return (
-    <aside className="flex flex-col h-full" style={{ width: 240, background: "#12121a", borderRight: "1px solid #2a2a3a" }}>
-      <div className="px-5 py-6" style={{ borderBottom: "1px solid #2a2a3a" }}>
-        <Link href="/dashboard" className="flex items-center no-underline">
-          <Image src="/logo.png" alt="Sendia" width={130} height={40} className="object-contain" />
+    <aside style={{ width: 240, background: "#12121a", borderRight: "1px solid #2a2a3a", display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid #2a2a3a" }}>
+        <Link href="/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+          <Image src="/logo.png" alt="Sendia" width={130} height={40} className="object-contain" priority />
         </Link>
       </div>
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
+      <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
         {NAV_ITEMS.map(item => (
           <NavLink key={item.href} item={item} active={isActive(item.href)} />
         ))}
         {onClose && <button onClick={onClose} className="sr-only">Fermer</button>}
       </nav>
-      <div className="px-3 py-4" style={{ borderTop: "1px solid #2a2a3a" }}>
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2">
-          <div className="w-[34px] h-[34px] rounded-full flex items-center justify-center text-white font-bold text-[0.85rem] shrink-0"
-            style={{ background: "linear-gradient(135deg, #4f6ef7, #a78bfa)" }}>
+      <div style={{ padding: "16px 12px", borderTop: "1px solid #2a2a3a" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 12, marginBottom: 8 }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #4f6ef7, #a78bfa)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.85rem", color: "#fff", flexShrink: 0 }}>
             {initial}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[0.85rem] font-semibold text-[#f0f0f5] truncate">{displayName}</p>
-            <p className="text-[0.75rem] text-[#66667a] truncate">{user?.email ?? ""}</p>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#f0f0f5", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{displayName}</p>
+            <p style={{ fontSize: "0.75rem", color: "#66667a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.email ?? ""}</p>
           </div>
         </div>
-        <button onClick={handleSignOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.88rem] font-medium text-[#66667a] transition-all duration-150 hover:text-[#f87171]"
-          style={{ background: "none", border: "none" }}
-          onMouseEnter={e => (e.currentTarget.style.background = "rgba(248,113,113,0.1)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "none")}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-          Se deconnecter
-        </button>
+        <LogoutButton onSignOut={handleSignOut} />
       </div>
     </aside>
   );
