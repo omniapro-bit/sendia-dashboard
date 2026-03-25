@@ -236,7 +236,7 @@ export default function DashboardPage() {
   }), [emails, statusFilter, categoryFilter, stats]);
   const name = profile?.client_name ?? "vous";
   return (
-    <div className="px-4 md:px-8 py-8 max-w-6xl mx-auto">
+    <div className="px-4 md:px-8 lg:px-12 py-8 w-full max-w-[1200px]">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">{greeting()}, {name} 👋</h1>
