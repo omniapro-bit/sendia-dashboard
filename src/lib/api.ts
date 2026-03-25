@@ -4,6 +4,8 @@ import type {
   ClientStats,
   EmailsResponse,
   ProfileUpdateBody,
+  BillingStatus,
+  BillingPlan,
 } from "./types";
 
 const API_BASE = "https://api.getsendia.com/api/client";
@@ -77,4 +79,12 @@ export const api = {
       documents_uploaded: boolean;
       ready: boolean;
     }>("POST", "/onboarding-status", {}),
+  getBillingStatus: () =>
+    apiFetch<BillingStatus>("/billing/status"),
+  getBillingPlans: () =>
+    apiFetch<BillingPlan[]>("/billing/plans"),
+  createCheckout: (plan: string) =>
+    apiMutate<{ url: string }>("POST", "/billing/checkout", { plan }),
+  openBillingPortal: () =>
+    apiMutate<{ url: string }>("POST", "/billing/portal", {}),
 };

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "starter",
+    "name": "Starter",
+    "price": 29,
+    "popular": false,
+    "features": [
+      "200 emails/mois",
+      "1 compte email",
+      "5 documents RAG",
+      "Support email"
+    ]
+  },
+  {
+    "id": "professional",
+    "name": "Professional",
+    "price": 79,
+    "popular": true,
+    "features": [
+      "1 000 emails/mois",
+      "3 comptes email",
+      "30 documents RAG",
+      "Prompts personnalisés par type",
+      "Signature personnalisée",
+      "Calendrier intégré",
+      "Support prioritaire"
+    ]
+  },
+  {
+    "id": "enterprise",
+    "name": "Enterprise",
+    "price": 119,
+    "popular": false,
+    "features": [
+      "Emails illimités",
+      "10 comptes email",
+      "Documents illimités",
+      "Prompts personnalisés par type",
+      "Signature personnalisée",
+      "Calendrier intégré",
+      "Support dédié + onboarding"
+    ]
+  }
+]

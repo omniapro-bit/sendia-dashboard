@@ -55,3 +55,19 @@ export type RagDocument = {
   doc_type: string;
   created_at: string;
 };
+
+export type BillingStatus = {
+  status: "trial" | "active" | "expired" | "canceled";
+  plan: string | null;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  emails_used_this_month: number;
+  emails_limit: number | null;
+};
+
+export type BillingPlan = {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+};
