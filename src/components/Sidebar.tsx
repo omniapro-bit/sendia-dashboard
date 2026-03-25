@@ -97,8 +97,9 @@ export function Sidebar(props: { onClose?: () => void }) {
   return (
     <aside className="flex flex-col h-full" style={{ width: 240, background: "#12121a", borderRight: "1px solid #2a2a3a" }}>
       <div style={{ padding: "22px 20px 18px", borderBottom: "1px solid #2a2a3a" }}>
-        <Link href="/dashboard" className="flex items-center no-underline">
-          <Image src="/logo.png" alt="Sendia" width={120} height={36} className="object-contain" priority />
+        <Link href="/dashboard" className="flex items-center gap-2 no-underline">
+          <Image src="/logo-icon.png" alt="Sendia" width={36} height={36} className="object-contain" priority />
+          <span className="text-lg font-bold text-[#f0f0f5] ml-1">Sendia</span>
         </Link>
       </div>
       <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto" style={{ padding: "12px 10px" }}>
