@@ -173,23 +173,19 @@ function RateBanner({ stats, rate }: { stats: ClientStats; rate: string }) {
     ? Math.min(100, (stats.month.sent + stats.month.rejected) / stats.month.processed * 100)
     : 0;
   return (
-    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex flex-wrap items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-semibold text-[#f0f0f5]">Taux de traitement ce mois</p>
-        <p className="text-xs text-[#9999b0] mt-0.5">
-          {stats.month.sent + stats.month.rejected} email(s) traités sur {stats.month.processed} reçus
-        </p>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="text-3xl font-extrabold text-[#34d399] leading-none">{rate}</p>
-          <p className="text-xs text-[#66667a] mt-1">de traitement</p>
+    <div style={{ background: "linear-gradient(135deg, rgba(52,211,153,0.04), #16161f 50%)", border: "1px solid #2a2a3a", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#f0f0f5" }}>Taux de traitement</p>
+          <p style={{ fontSize: "0.75rem", color: "#66667a", marginTop: 2 }}>
+            {stats.month.sent + stats.month.rejected} traités sur {stats.month.processed} reçus
+          </p>
         </div>
-        <div className="w-32 h-2 bg-[#1c1c28] rounded-full overflow-hidden hidden sm:block">
-          <div
-            className="h-full rounded-full bg-[#34d399] transition-all duration-500"
-            style={{ width: `${pct}%` }}
-          />
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 120, height: 6, background: "#1c1c28", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg, #34d399, #6ee7b7)", borderRadius: 3, transition: "width 0.5s" }} />
+          </div>
+          <p style={{ fontSize: "1.5rem", fontWeight: 800, color: "#34d399", lineHeight: 1 }}>{rate}</p>
         </div>
       </div>
     </div>
@@ -281,7 +277,7 @@ export default function DashboardPage() {
 
           {/* Category counters */}
           {derived.categoryCounters.length > 0 && (
-            <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-4 mb-6">
+            <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "16px 20px", marginBottom: 24 }}>
               <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-3">
                 Répartition par catégorie
               </p>
@@ -294,7 +290,7 @@ export default function DashboardPage() {
           )}
 
           {/* Email table with filters */}
-          <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl mb-6">
+          <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, marginBottom: 24, overflow: "hidden" }}>
             <div className="px-6 py-4 border-b border-[#2a2a3a]">
               <h2 className="text-base font-semibold text-[#f0f0f5] mb-3">Emails récents</h2>
               <div className="flex flex-wrap items-center gap-4">
@@ -331,7 +327,7 @@ export default function DashboardPage() {
               <Link
                 key={a.href}
                 href={a.href}
-                className="bg-[#16161f] border border-[#2a2a3a] hover:border-[#4f6ef7]/40 rounded-2xl p-4 flex flex-col gap-1 transition-colors group"
+                className="group" style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "16px 20px", display: "flex", flexDirection: "column", gap: 4, transition: "border-color 0.2s", textDecoration: "none" }} onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(79,110,247,0.4)"} onMouseLeave={e => e.currentTarget.style.borderColor = "#2a2a3a"}
               >
                 <p className="font-semibold text-[#f0f0f5] group-hover:text-[#6b85ff] transition-colors">
                   {a.label}

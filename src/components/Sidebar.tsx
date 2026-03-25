@@ -84,8 +84,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     <aside style={{ width: 240, background: "#12121a", borderRight: "1px solid #2a2a3a", display: "flex", flexDirection: "column", height: "100%" }}>
       <div style={{ padding: "24px 20px 20px", borderBottom: "1px solid #2a2a3a" }}>
         <Link href="/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <Image src="/logo-icon.png" alt="Sendia" width={32} height={32} className="object-contain" priority />
-          <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#f0f0f5", marginLeft: 8 }}>Sendia</span>
+          <Image src="/logo.png" alt="Sendia" width={44} height={44} className="object-contain" priority />
+          <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "#f0f0f5", marginLeft: 10, letterSpacing: "-0.3px" }}>Sendia</span>
         </Link>
       </div>
       <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
