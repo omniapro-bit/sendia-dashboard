@@ -76,7 +76,7 @@ export default function DocumentsPage() {
     const { error: chunksErr } = await supabase
       .from("rag_chunks")
       .delete()
-      .eq("document_id", doc.id);
+      .eq("doc_id", doc.id);
     if (chunksErr) {
       toast("Erreur lors de la suppression des fragments.", "error");
       setDeletingId(null);
