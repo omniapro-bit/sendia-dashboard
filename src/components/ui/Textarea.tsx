@@ -1,25 +1,20 @@
 "use client";
 import { type TextareaHTMLAttributes } from "react";
-interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string;
-  error?: string;
-  hint?: string;
-}
+import { FormField, FieldAnnotations, fieldId, borderClass } from "./FormField";
+
+interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, FieldAnnotations {}
+
 export function Textarea(props: TextareaProps) {
   const { label, error, hint, className = "", id, ...rest } = props;
-  const areaId = id ?? label?.toLowerCase().replace(/\s+/g, "-");
+  const fid = fieldId(id, label);
+
   return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label htmlFor={areaId} className="text-sm font-medium text-[#9999b0]">{label}</label>
-      )}
+    <FormField fieldId={fid} label={label} error={error} hint={hint}>
       <textarea
         {...rest}
-        id={areaId}
-        className={`w-full px-4 py-2.5 rounded-xl bg-[#12121a] border text-[#f0f0f5] placeholder-[#66667a] text-sm transition-colors outline-none focus:ring-2 focus:ring-[#4f6ef7]/40 resize-none ${error ? "border-[#f87171]/60 focus:border-[#f87171]" : "border-[#2a2a3a] focus:border-[#4f6ef7]/60"} ${className}`}
+        id={fid}
+        className={`w-full px-4 py-2.5 rounded-xl bg-[#12121a] border text-[#f0f0f5] placeholder-[#66667a] text-sm leading-relaxed transition-colors duration-150 outline-none resize-none focus:ring-2 focus:ring-[#4f6ef7]/30 ${borderClass(error)} ${className}`}
       />
-      {error && <p className="text-xs text-[#f87171]">{error}</p>}
-      {hint && !error && <p className="text-xs text-[#66667a]">{hint}</p>}
-    </div>
+    </FormField>
   );
 }
