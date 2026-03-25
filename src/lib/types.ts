@@ -15,6 +15,7 @@ export interface ClientProfile {
   feature_auto_skip_spam: boolean;
   feature_notification_mode: string;
   feature_rag_enabled: boolean;
+  whatsapp_number?: string;
 }
 
 export type StatPeriod = { processed: number; sent: number; rejected: number };
@@ -32,12 +33,14 @@ export type Email = {
   subject: string;
   intention: string;
   status: string;
+  category?: string;
   created_at: string;
 };
 export type EmailsResponse = { emails: Email[]; total: number };
 export type ProfileUpdateBody = {
   client_name?: string;
   company_name?: string;
+  whatsapp_number?: string;
   signature?: string;
   tone_preference?: string;
   custom_prompt_context?: string;

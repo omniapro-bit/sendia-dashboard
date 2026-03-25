@@ -1,4 +1,4 @@
-type BadgeVariant = "green" | "red" | "orange" | "purple" | "blue" | "gray";
+type BadgeVariant = "green" | "red" | "orange" | "purple" | "blue" | "yellow" | "teal" | "gray";
 interface BadgeProps {
   variant?: BadgeVariant;
   children: React.ReactNode;
@@ -10,6 +10,8 @@ function badgeClass(v: BadgeVariant): string {
   if (v === "orange") return "bg-orange-400/10 text-orange-400 border-orange-400/20";
   if (v === "purple") return "bg-violet-400/10 text-violet-400 border-violet-400/20";
   if (v === "blue") return "bg-indigo-400/10 text-indigo-400 border-indigo-400/20";
+  if (v === "yellow") return "bg-yellow-400/10 text-yellow-400 border-yellow-400/20";
+  if (v === "teal") return "bg-teal-400/10 text-teal-400 border-teal-400/20";
   return "bg-[#2a2a3a] text-[#9999b0] border-[#333348]";
 }
 export function Badge(props: BadgeProps) {

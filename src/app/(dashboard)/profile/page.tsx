@@ -14,7 +14,7 @@ import { Spinner } from "@/components/ui/Spinner";
 // ─── types ────────────────────────────────────────────────────────────────────
 
 type ToneValue = "professionnel" | "amical" | "formel" | "direct" | "commercial";
-type FormState = Required<Omit<ProfileUpdateBody, "greeting_style">>;
+type FormState = Required<Omit<ProfileUpdateBody, "greeting_style" | "is_active">> & { is_active: boolean };
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,6 +27,7 @@ function emptyForm(): FormState {
   return {
     client_name: "",
     company_name: "",
+    whatsapp_number: "",
     signature: "",
     tone_preference: "professionnel",
     custom_prompt_context: "",
@@ -37,6 +38,7 @@ function emptyForm(): FormState {
 function profileToForm(p: {
   client_name: string;
   company_name: string;
+  whatsapp_number?: string;
   signature: string;
   tone_preference: string;
   custom_prompt_context: string;
@@ -45,6 +47,7 @@ function profileToForm(p: {
   return {
     client_name: p.client_name ?? "",
     company_name: p.company_name ?? "",
+    whatsapp_number: p.whatsapp_number ?? "",
     signature: p.signature ?? "",
     tone_preference: p.tone_preference ?? "professionnel",
     custom_prompt_context: p.custom_prompt_context ?? "",
@@ -76,8 +79,8 @@ export default function ProfilePage() {
     e.preventDefault();
     await withLoading(setSaving, async () => {
       try {
-        const { client_name, company_name, signature, tone_preference, custom_prompt_context } = form;
-        await api.updateProfile({ client_name, company_name, signature, tone_preference, custom_prompt_context });
+        const { client_name, company_name, whatsapp_number, signature, tone_preference, custom_prompt_context } = form;
+        await api.updateProfile({ client_name, company_name, whatsapp_number, signature, tone_preference, custom_prompt_context });
         await refreshProfile();
         toast("Profil enregistré avec succès.", "success");
       } catch {
@@ -132,6 +135,8 @@ export default function ProfilePage() {
               onChange={e => set("client_name", e.target.value)} placeholder="Jean Dupont" />
             <Input label="Nom de l'entreprise" value={form.company_name}
               onChange={e => set("company_name", e.target.value)} placeholder="Acme SAS" />
+            <Input label="Numéro WhatsApp" value={form.whatsapp_number}
+              onChange={e => set("whatsapp_number", e.target.value)} placeholder="+33 6 12 34 56 78" />
           </div>
         </div>
 

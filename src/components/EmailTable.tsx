@@ -1,6 +1,6 @@
 import type { Email } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
-type BadgeVariant = "green" | "red" | "orange" | "gray";
+type BadgeVariant = "green" | "red" | "orange" | "purple" | "blue" | "yellow" | "teal" | "gray";
 function statusVariant(status: string): BadgeVariant {
   if (status === "SENT") return "green";
   if (status === "REJECTED") return "red";
@@ -12,6 +12,29 @@ function statusLabel(status: string): string {
   if (status === "REJECTED") return "Rejeté";
   if (status === "PENDING") return "En attente";
   return status;
+}
+function categoryVariant(category: string): BadgeVariant {
+  if (category === "devis") return "orange";
+  if (category === "facture") return "purple";
+  if (category === "lead") return "green";
+  if (category === "support") return "blue";
+  if (category === "urgent") return "red";
+  if (category === "relance") return "yellow";
+  if (category === "commande") return "teal";
+  return "gray";
+}
+function categoryLabel(category: string): string {
+  if (category === "lead") return "Lead";
+  if (category === "devis") return "Devis";
+  if (category === "commande") return "Commande";
+  if (category === "facture") return "Facture";
+  if (category === "relance") return "Relance";
+  if (category === "suivi") return "Suivi";
+  if (category === "support") return "Support";
+  if (category === "question") return "Question";
+  if (category === "general") return "Général";
+  if (category === "urgent") return "Urgent";
+  return category;
 }
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -27,6 +50,7 @@ export function EmailTable({ emails }: { emails: Email[] }) {
           <tr className="border-b border-[#2a2a3a]">
             <th className="text-left py-3 px-4 text-xs font-semibold text-[#66667a] uppercase tracking-wide">Expéditeur</th>
             <th className="text-left py-3 px-4 text-xs font-semibold text-[#66667a] uppercase tracking-wide">Objet</th>
+            <th className="text-left py-3 px-4 text-xs font-semibold text-[#66667a] uppercase tracking-wide hidden md:table-cell">Type</th>
             <th className="text-left py-3 px-4 text-xs font-semibold text-[#66667a] uppercase tracking-wide hidden md:table-cell">Date</th>
             <th className="text-left py-3 px-4 text-xs font-semibold text-[#66667a] uppercase tracking-wide">Statut</th>
           </tr>
@@ -40,6 +64,11 @@ export function EmailTable({ emails }: { emails: Email[] }) {
               </td>
               <td className="py-3 px-4">
                 <p className="text-[#9999b0] truncate max-w-[200px]">{email.subject}</p>
+              </td>
+              <td className="py-3 px-4 hidden md:table-cell">
+                {email.category && (
+                  <Badge variant={categoryVariant(email.category)}>{categoryLabel(email.category)}</Badge>
+                )}
               </td>
               <td className="py-3 px-4 text-[#66667a] hidden md:table-cell whitespace-nowrap">{formatDate(email.created_at)}</td>
               <td className="py-3 px-4">
