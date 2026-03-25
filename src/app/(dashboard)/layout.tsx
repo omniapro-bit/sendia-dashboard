@@ -9,7 +9,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => {
-    if (!loading && !user) router.replace("/login");
+    if (loading) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    if (!user.email_confirmed_at) {
+      router.replace(
+        user.email
+          ? `/verify-email?email=${encodeURIComponent(user.email)}`
+          : "/verify-email"
+      );
+    }
   }, [user, loading, router]);
   if (loading) {
     return (
@@ -18,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-  if (!user) return null;
+  if (!user || !user.email_confirmed_at) return null;
   return (
     <div className="flex h-screen bg-[#0a0a0f] overflow-hidden">
       <div className="hidden md:flex md:shrink-0">
