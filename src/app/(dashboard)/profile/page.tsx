@@ -122,7 +122,7 @@ export default function ProfilePage() {
           </p>
         </div>
         <Toggle checked={isActive} onChange={handleToggle} disabled={toggling}
-          label={isActive ? "Activer" : "Désactiver"} />
+          label={isActive ? "Actif" : "Inactif"} />
       </div>
 
       <form onSubmit={handleSave}>

@@ -65,8 +65,4 @@ export const api = {
       "POST", "/toggle",
       is_active !== undefined ? { is_active } : {}
     ),
-  ingestDocument: (file_name: string, content: string) =>
-    apiMutate<{ success: boolean; chunks_ingested: number }>(
-      "POST", "/rag/ingest", { file_name, content }
-    ),
 };

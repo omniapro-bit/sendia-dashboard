@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { api } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -14,10 +13,14 @@ type RagDocument = {
   created_at: string;
 };
 
-const ACCEPTED_EXTENSIONS = [".txt", ".md", ".csv", ".json", ".pdf", ".docx"];
-const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(",");
+// Upload constraints
+const ACCEPTED_TEXT_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
+const ACCEPT_ATTR = ACCEPTED_TEXT_EXTENSIONS.join(",");
 const MAX_BYTES = 10 * 1024 * 1024;
-const TEXT_EXTS = new Set([".txt", ".md", ".csv", ".json"]);
+
+// RAG chunking parameters (~500 tokens per chunk)
+const CHUNK_SIZE = 2000;
+const CHUNK_OVERLAP = 200;
 
 function readAsText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -28,21 +31,47 @@ function readAsText(file: File): Promise<string> {
   });
 }
 
-function readAsBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => {
-      const res = r.result as string;
-      resolve(res.split(",")[1] ?? res);
-    };
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
-  });
+function chunkText(text: string): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  while (start < text.length) {
+    const end = Math.min(start + CHUNK_SIZE, text.length);
+    chunks.push(text.slice(start, end));
+    start += CHUNK_SIZE - CHUNK_OVERLAP;
+    if (start >= text.length) break;
+  }
+  return chunks.filter(c => c.trim().length > 0);
 }
 
-async function readFileContent(file: File): Promise<string> {
-  const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
-  return TEXT_EXTS.has(ext) ? readAsText(file) : readAsBase64(file);
+async function insertDocumentRecord(
+  clientId: string,
+  fileName: string,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("rag_documents")
+    .insert({ client_id: clientId, doc_title: fileName, doc_type: "uploaded_document" })
+    .select("id")
+    .single();
+  if (error || !data) throw new Error(error?.message ?? "Impossible de cr\u00e9er le document.");
+  return data.id as string;
+}
+
+async function insertChunkRows(
+  docId: string,
+  clientId: string,
+  chunks: string[],
+): Promise<void> {
+  const rows = chunks.map((content, chunk_index) => ({
+    doc_id: docId,
+    client_id: clientId,
+    content,
+    chunk_index,
+  }));
+  const { error } = await supabase.from("rag_chunks").insert(rows);
+  if (error) {
+    await supabase.from("rag_documents").delete().eq("id", docId);
+    throw new Error(error.message);
+  }
 }
 
 export default function DocumentsPage() {
@@ -71,7 +100,7 @@ export default function DocumentsPage() {
   useEffect(() => { loadDocuments(); }, [loadDocuments]);
 
   async function deleteDocument(doc: RagDocument) {
-    if (!confirm(`Supprimer "${doc.doc_title}" ? Cette action est irréversible.`)) return;
+    if (!confirm(`Supprimer "${doc.doc_title}" ? Cette action est irr\u00e9versible.`)) return;
     setDeletingId(doc.id);
     const { error: chunksErr } = await supabase
       .from("rag_chunks")
@@ -90,28 +119,60 @@ export default function DocumentsPage() {
     if (docErr) {
       toast("Erreur lors de la suppression du document.", "error");
     } else {
-      toast(`"${doc.doc_title}" supprimé.`, "success");
+      toast(`"${doc.doc_title}" supprim\u00e9.`, "success");
       setDocuments(prev => prev.filter(d => d.id !== doc.id));
     }
     setDeletingId(null);
   }
+
   async function uploadFile(file: File) {
-    if (file.size > MAX_BYTES) {
-      toast(`Fichier trop volumineux (max 10 Mo) : ${file.name}`, "error");
+    const ext = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+
+    if (!ACCEPTED_TEXT_EXTENSIONS.includes(ext)) {
+      toast(
+        `Format non pris en charge (${ext}). Utilisez .txt, .md, .csv ou .json.`,
+        "error",
+      );
       return;
     }
+    if (file.size > MAX_BYTES) {
+      toast(`Fichier trop volumineux (max 10\u00a0Mo)\u00a0: ${file.name}`, "error");
+      return;
+    }
+    if (!profile?.client_id) {
+      toast("Session invalide. Rechargez la page.", "error");
+      return;
+    }
+
     setUploading(true);
     try {
-      const content = await readFileContent(file);
-      const result = await api.ingestDocument(file.name, content);
-      toast(`"${file.name}" ingéré — ${result.chunks_ingested} fragment(s) indexé(s).`, "success");
-      loadDocuments();
-    } catch {
-      toast(`Erreur lors de l'ingestion de "${file.name}".`, "error");
+      const text = await readAsText(file);
+      const chunks = chunkText(text);
+
+      if (chunks.length === 0) {
+        toast("Le fichier est vide ou illisible.", "error");
+        return;
+      }
+
+      const docId = await insertDocumentRecord(profile.client_id, file.name);
+      await insertChunkRows(docId, profile.client_id, chunks);
+      // Document and chunks persisted — refresh the list
+
+      toast(
+        `"${file.name}" index\u00e9\u00a0\u2014\u00a0${chunks.length}\u00a0fragment(s) cr\u00e9\u00e9(s).`,
+        "success",
+      );
+      await loadDocuments();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast(`Erreur lors de l'ingestion\u00a0: ${msg}`, "error");
     } finally {
       setUploading(false);
+      // Reset input so the same file can be re-uploaded
+      if (inputRef.current) inputRef.current.value = "";
     }
   }
+
   function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
     uploadFile(files[0]);
@@ -121,11 +182,12 @@ export default function DocumentsPage() {
     setDragging(false);
     handleFiles(e.dataTransfer.files);
   }
+
   return (
     <div className="px-4 md:px-8 py-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Mes documents</h1>
-        <p className="text-[#9999b0] mt-1">Enrichissez Sendia avec vos propres documents de référence.</p>
+        <p className="text-[#9999b0] mt-1">Enrichissez Sendia avec vos propres documents de r\u00e9f\u00e9rence.</p>
       </div>
 
       <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center gap-4">
@@ -136,7 +198,7 @@ export default function DocumentsPage() {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#f0f0f5]">Documents indexés</p>
+          <p className="text-sm font-semibold text-[#f0f0f5]">Documents index\u00e9s</p>
           <p className="text-2xl font-bold text-[#4f6ef7] leading-tight">
             {docsLoading ? <Spinner size="sm" /> : documents.length}
           </p>
@@ -153,7 +215,7 @@ export default function DocumentsPage() {
             <div className="px-6 py-8 flex justify-center"><Spinner size="md" /></div>
           ) : documents.length === 0 ? (
             <div className="px-6 py-8 text-center text-[#66667a] text-sm">
-              Aucun document importé. Ajoutez-en ci-dessous pour enrichir les réponses de Sendia.
+              Aucun document import\u00e9. Ajoutez-en ci-dessous pour enrichir les r\u00e9ponses de Sendia.
             </div>
           ) : (
             documents.map(doc => (
@@ -197,14 +259,14 @@ export default function DocumentsPage() {
         <div className="px-6 py-4 border-b border-[#2a2a3a]">
           <h2 className="text-base font-semibold text-[#f0f0f5]">Importer un document</h2>
           <p className="text-xs text-[#66667a] mt-0.5">
-            Formats acceptés&nbsp;: .txt, .pdf, .md, .docx, .csv, .json — max 10&nbsp;Mo
+            Formats accept\u00e9s\u00a0: .txt, .md, .csv, .json \u2014 max 10\u00a0Mo
           </p>
         </div>
         <div className="px-6 py-6">
           <div
             role="button"
             tabIndex={0}
-            aria-label="Zone de dépôt de fichier"
+            aria-label="Zone de d\u00e9p\u00f4t de fichier"
             onClick={() => !uploading && inputRef.current?.click()}
             onKeyDown={e => e.key === "Enter" && !uploading && inputRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -220,7 +282,7 @@ export default function DocumentsPage() {
             {uploading ? (
               <>
                 <Spinner size="lg" />
-                <p className="text-sm text-[#9999b0]">Ingestion en cours…</p>
+                <p className="text-sm text-[#9999b0]">Ingestion en cours\u2026</p>
               </>
             ) : (
               <>
@@ -235,7 +297,7 @@ export default function DocumentsPage() {
                     Glissez un fichier ici ou{" "}
                     <span className="text-[#4f6ef7]">cliquez pour parcourir</span>
                   </p>
-                  <p className="text-xs text-[#66667a] mt-1">Un fichier à la fois</p>
+                  <p className="text-xs text-[#66667a] mt-1">Un fichier \u00e0 la fois \u2014 .txt, .md, .csv, .json</p>
                 </div>
               </>
             )}

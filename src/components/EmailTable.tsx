@@ -6,10 +6,10 @@ type Cfg = { variant: BadgeVariant; label: string };
 
 function cfg(key: string): Cfg {
   switch (key) {
-    case "SENT":      return { variant: "green",  label: "Envoyé" };
-    case "REJECTED":  return { variant: "red",    label: "Rejeté" };
+    case "SENT":      return { variant: "green",  label: "Envoy\u00e9" };
+    case "REJECTED":  return { variant: "red",    label: "Rejet\u00e9" };
     case "PENDING":   return { variant: "orange", label: "En attente" };
-    case "CANCELLED": return { variant: "gray",   label: "Annulé" };
+    case "CANCELLED": return { variant: "gray",   label: "Annul\u00e9" };
     case "devis":     return { variant: "orange", label: "Devis" };
     case "facture":   return { variant: "purple", label: "Facture" };
     case "lead":      return { variant: "green",  label: "Lead" };
@@ -19,7 +19,7 @@ function cfg(key: string): Cfg {
     case "commande":  return { variant: "teal",   label: "Commande" };
     case "suivi":     return { variant: "gray",   label: "Suivi" };
     case "question":  return { variant: "gray",   label: "Question" };
-    case "general":   return { variant: "gray",   label: "Général" };
+    case "general":   return { variant: "gray",   label: "G\u00e9n\u00e9ral" };
     default:          return { variant: "gray",   label: key };
   }
 }
@@ -30,7 +30,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function thStyle(): React.CSSProperties {
+function thStyle(width?: string): React.CSSProperties {
   return {
     textAlign: "left",
     fontSize: "0.72rem",
@@ -40,6 +40,8 @@ function thStyle(): React.CSSProperties {
     letterSpacing: "0.5px",
     padding: "0 14px 12px",
     borderBottom: "1px solid #2a2a3a",
+    width: width,
+    whiteSpace: "nowrap",
   };
 }
 
@@ -54,17 +56,24 @@ export function EmailTable(props: { emails: Email[] }) {
           style={{ margin: "0 auto 12px", opacity: 0.35, display: "block" }}>
           <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        <p style={{ fontSize: "0.88rem" }}>Aucun email traité pour le moment.</p>
+        <p style={{ fontSize: "0.88rem" }}>Aucun email trait\u00e9 pour le moment.</p>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: "22%" }} />
+          <col style={{ width: "38%" }} />
+          <col style={{ width: "14%" }} className="hidden md:table-column" />
+          <col style={{ width: "16%" }} className="hidden md:table-column" />
+          <col style={{ width: "10%" }} />
+        </colgroup>
         <thead>
           <tr>
-            <th style={thStyle()}>Expéditeur</th>
+            <th style={thStyle()}>Exp\u00e9diteur</th>
             <th style={thStyle()}>Objet</th>
             <th style={thStyle()} className="hidden md:table-cell">Type</th>
             <th style={thStyle()} className="hidden md:table-cell">Date</th>
@@ -83,15 +92,15 @@ export function EmailTable(props: { emails: Email[] }) {
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 <td style={{ padding: "13px 14px", verticalAlign: "middle" }}>
-                  <p style={{ fontWeight: 600, color: "#f0f0f5", fontSize: "0.85rem", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <p style={{ fontWeight: 600, color: "#f0f0f5", fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {email.from_name || email.from_email}
                   </p>
-                  <p style={{ fontSize: "0.72rem", color: "#66667a", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>
+                  <p style={{ fontSize: "0.72rem", color: "#66667a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 2 }}>
                     {email.from_email}
                   </p>
                 </td>
                 <td style={{ padding: "13px 14px", verticalAlign: "middle" }}>
-                  <p style={{ color: "#b0b0c0", fontSize: "0.85rem", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <p style={{ color: "#b0b0c0", fontSize: "0.85rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {email.subject}
                   </p>
                 </td>
