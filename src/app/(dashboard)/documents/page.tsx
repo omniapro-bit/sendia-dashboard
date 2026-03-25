@@ -184,7 +184,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="px-4 md:px-8 py-8 max-w-2xl mx-auto">
+    <div className="px-6 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Mes documents</h1>
         <p className="text-[#9999b0] mt-1">Enrichissez Sendia avec vos propres documents de référence.</p>
