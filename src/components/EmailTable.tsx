@@ -6,10 +6,10 @@ type Cfg = { variant: BadgeVariant; label: string };
 
 function cfg(key: string): Cfg {
   switch (key) {
-    case "SENT":      return { variant: "green",  label: "Envoy\u00e9" };
-    case "REJECTED":  return { variant: "red",    label: "Rejet\u00e9" };
+    case "SENT":      return { variant: "green",  label: "Envoyé" };
+    case "REJECTED":  return { variant: "red",    label: "Rejeté" };
     case "PENDING":   return { variant: "orange", label: "En attente" };
-    case "CANCELLED": return { variant: "gray",   label: "Annul\u00e9" };
+    case "CANCELLED": return { variant: "gray",   label: "Annulé" };
     case "devis":     return { variant: "orange", label: "Devis" };
     case "facture":   return { variant: "purple", label: "Facture" };
     case "lead":      return { variant: "green",  label: "Lead" };
@@ -19,7 +19,7 @@ function cfg(key: string): Cfg {
     case "commande":  return { variant: "teal",   label: "Commande" };
     case "suivi":     return { variant: "gray",   label: "Suivi" };
     case "question":  return { variant: "gray",   label: "Question" };
-    case "general":   return { variant: "gray",   label: "G\u00e9n\u00e9ral" };
+    case "general":   return { variant: "gray",   label: "Général" };
     default:          return { variant: "gray",   label: key };
   }
 }
@@ -56,7 +56,7 @@ export function EmailTable(props: { emails: Email[] }) {
           style={{ margin: "0 auto 12px", opacity: 0.35, display: "block" }}>
           <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
-        <p style={{ fontSize: "0.88rem" }}>Aucun email trait\u00e9 pour le moment.</p>
+        <p style={{ fontSize: "0.88rem" }}>Aucun email traité pour le moment.</p>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export function EmailTable(props: { emails: Email[] }) {
         </colgroup>
         <thead>
           <tr>
-            <th style={thStyle()}>Exp\u00e9diteur</th>
+            <th style={thStyle()}>Expéditeur</th>
             <th style={thStyle()}>Objet</th>
             <th style={thStyle()} className="hidden md:table-cell">Type</th>
             <th style={thStyle()} className="hidden md:table-cell">Date</th>
