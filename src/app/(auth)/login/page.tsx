@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import Image from "next/image";
 export default function LoginPage() {
   const { signIn } = useAuth();
   const { toast } = useToast();
@@ -29,7 +30,7 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-md">
       <div className="flex items-center justify-center gap-2.5 mb-10">
-        <div className="w-9 h-9 rounded-xl bg-[#4f6ef7] flex items-center justify-center text-white font-bold text-lg">S</div>
+        <Image src="/logo-icon.png" alt="Sendia" width={36} height={36} className="rounded-xl" />
         <span className="text-2xl font-extrabold tracking-tight text-[#f0f0f5]">Sendia</span>
       </div>
       <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-8 md:p-10">
