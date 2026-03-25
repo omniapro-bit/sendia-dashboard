@@ -14,6 +14,20 @@ export const metadata: Metadata = {
   title: "Sendia — Tableau de bord",
   description: "Gérez votre assistant email intelligent via WhatsApp.",
   robots: "noindex, nofollow",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Sendia",
+    statusBarStyle: "black-translucent",
+  },
+  themeColor: "#4f6ef7",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

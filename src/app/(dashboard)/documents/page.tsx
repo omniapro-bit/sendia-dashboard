@@ -85,7 +85,7 @@ export default function DocumentsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadDocuments = useCallback(async () => {
-    if (!profile?.client_id) return;
+    if (!profile?.client_id) { setDocsLoading(false); return; }
     setDocsLoading(true);
     const { data, error } = await supabase
       .from("rag_documents")
