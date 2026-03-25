@@ -138,7 +138,7 @@ function FilterGroup<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2">
       {options.map(f => (
         <FilterButton key={f.value} active={active === f.value} onClick={() => onChange(f.value)}>
           {f.label}
@@ -236,7 +236,7 @@ export default function DashboardPage() {
   }), [emails, statusFilter, categoryFilter, stats]);
   const name = profile?.client_name ?? "vous";
   return (
-    <div className="px-4 md:px-8 py-8 max-w-6xl mx-auto">
+    <div className="px-6 py-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">{greeting()}, {name} 👋</h1>
@@ -266,18 +266,12 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Stat cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-3 gap-4 mb-4">
             <StatCard label="Aujourd'hui"      value={stats?.today.processed ?? 0} color="blue" />
             <StatCard label="Cette semaine"    value={stats?.week.processed  ?? 0} color="purple" />
             <StatCard label="Ce mois"          value={stats?.month.processed ?? 0} color="blue" />
             <StatCard label="Envoyés / mois"   value={stats?.month.sent      ?? 0} color="green" />
             <StatCard label="Rejetés / mois"   value={stats?.month.rejected  ?? 0} color="red" />
-            <StatCard
-              label="Taux de traitement"
-              value={derived.responseRate ?? "—"}
-              color="green"
-              subtitle="envoyés + rejetés / total"
-            />
           </div>
 
           {/* Taux de traitement detail banner */}
@@ -303,7 +297,7 @@ export default function DashboardPage() {
           <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl mb-6">
             <div className="px-6 py-4 border-b border-[#2a2a3a]">
               <h2 className="text-base font-semibold text-[#f0f0f5] mb-3">Emails récents</h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-4">
                 <FilterGroup
                   options={STATUS_FILTER_OPTIONS}
                   active={statusFilter}

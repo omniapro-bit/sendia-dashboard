@@ -24,7 +24,7 @@ export function StatCard({ label, value, color = "blue", subtitle }: StatCardPro
       <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
         {label}
       </p>
-      <p style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1, color: valueColor(color) }}>
+      <p style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-1px", lineHeight: 1, color: "#f0f0f5" }}>
         {value}
       </p>
       {subtitle && (
