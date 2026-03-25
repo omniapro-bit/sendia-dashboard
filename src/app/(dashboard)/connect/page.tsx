@@ -64,9 +64,9 @@ export default function ConnectPage() {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#34d399]">Email connect\u00e9</p>
+            <p className="text-sm font-semibold text-[#34d399]">Email connecté</p>
             <p className="text-xs text-[#9999b0]">
-              {hasGmail ? "Gmail" : "Outlook"} est li\u00e9 \u00e0 votre compte Sendia.
+              {hasGmail ? "Gmail" : "Outlook"} est lié à votre compte Sendia.
             </p>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default function ConnectPage() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            {hasGmail ? "Gmail connect\u00e9 \u2714" : "Connecter Gmail"}
+            {hasGmail ? "Gmail connecté ✔" : "Connecter Gmail"}
           </a>
 
           <a
@@ -95,7 +95,7 @@ export default function ConnectPage() {
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#0078D4" d="M24 7.387v10.478c0 .23-.08.424-.238.583a.793.793 0 0 1-.583.238h-8.404V6.566h8.404c.23 0 .424.08.583.238.159.159.238.353.238.583zM13.5 2.25v19.5L0 19.5V4.5l13.5-2.25zM9.69 8.166c-.478-.158-.97-.237-1.478-.237-.99 0-1.818.36-2.487 1.08C5.056 9.73 4.722 10.66 4.722 11.798c0 1.055.31 1.93.93 2.625.62.696 1.396 1.044 2.33 1.044.545 0 1.054-.107 1.527-.321v-1.584c-.455.435-.949.652-1.482.652-.617 0-1.108-.223-1.473-.67-.365-.446-.547-1.05-.547-1.81 0-.736.19-1.33.57-1.782.38-.452.876-.678 1.487-.678.52 0 1.002.228 1.445.683V8.372l-.319-.206z" />
             </svg>
-            {hasOutlook ? "Outlook connect\u00e9 \u2714" : "Connecter Outlook"}
+            {hasOutlook ? "Outlook connecté ✔" : "Connecter Outlook"}
           </a>
         </div>
 
@@ -107,22 +107,22 @@ export default function ConnectPage() {
           </div>
           <div className="flex items-start gap-2.5 text-sm text-[#9999b0]">
             <CheckIcon />
-            <span>R\u00e9ponses sugg\u00e9r\u00e9es valid\u00e9es par vous sur WhatsApp</span>
+            <span>Réponses suggérées validées par vous sur WhatsApp</span>
           </div>
           <div className="flex items-start gap-2.5 text-sm text-[#9999b0]">
             <CheckIcon />
-            <span>D\u00e9tection automatique de rendez-vous et gestion du calendrier</span>
+            <span>Détection automatique de rendez-vous et gestion du calendrier</span>
           </div>
           <div className="flex items-start gap-2.5 text-sm text-[#9999b0]">
             <CheckIcon />
-            <span>Vos donn\u00e9es restent priv\u00e9es — aucun stockage de contenu</span>
+            <span>Vos données restent privées — aucun stockage de contenu</span>
           </div>
         </div>
       </div>
 
       {/* Security note */}
       <div className="bg-[#4f6ef7]/8 border border-[#4f6ef7]/15 rounded-xl p-4 text-sm text-[#9999b0] leading-relaxed text-center">
-        Sendia respecte le RGPD et ne stocke aucun contenu d'email. Seules les m\u00e9tadonn\u00e9es n\u00e9cessaires au traitement sont conserv\u00e9es.
+        Sendia respecte le RGPD et ne stocke aucun contenu d{"'"}email. Seules les métadonnées nécessaires au traitement sont conservées.
       </div>
     </div>
   );
