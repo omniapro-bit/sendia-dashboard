@@ -47,3 +47,10 @@ export type ProfileUpdateBody = {
   greeting_style?: string;
   is_active?: boolean;
 };
+
+export type RagDocument = {
+  id: string;
+  doc_title: string;
+  doc_type: string;
+  created_at: string;
+};
