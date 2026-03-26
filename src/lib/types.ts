@@ -111,6 +111,24 @@ export type TypeCount = {
   rejected: number;
 };
 
+export type Activity = {
+  id: string;
+  from_name: string;
+  from_email: string;
+  subject: string;
+  email_type: string | null;
+  action: string | null;
+  status: string;
+  created_at: string;
+  draft_response: string | null;
+  ai_response: string | null;
+  email_summary: string | null;
+};
+
+export type ActivityResponse = {
+  activities: Activity[];
+};
+
 export type AdvancedStats = {
   daily_counts: DailyCount[];
   by_type: TypeCount[];

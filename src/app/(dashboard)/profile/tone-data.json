@@ -1,6 +1,0 @@
-{
-  "professionnel": { "label": "Professionnel", "instruction": "Adopte un ton professionnel et courtois." },
-  "amical":        { "label": "Amical",        "instruction": "Adopte un ton amical et chaleureux." },
-  "formel":        { "label": "Formel",        "instruction": "Adopte un ton très formel et respectueux." },
-  "decontracte":   { "label": "Décontracté",   "instruction": "Adopte un ton décontracté et sympathique." }
-}

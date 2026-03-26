@@ -10,86 +10,56 @@ import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Toggle";
 import { Spinner } from "@/components/ui/Spinner";
-import toneDataJson from "./tone-data.json";
-import toneRowsJson from "./tone-rows.json";
+import { TONE_OPTIONS, DEFAULT_TONE } from "./profile-config";
 
-// ─── types ────────────────────────────────────────────────────────────────────
-
-type ToneKey = keyof typeof toneDataJson;
-type ToneMeta = { label: string; instruction: string };
-type ToneRowKey = "devis" | "lead" | "support" | "relance" | "autre";
-type ToneRow = { key: ToneRowKey; label: string; promptField: keyof ProfileUpdateBody };
-type PerTypeToneState = { [K in ToneRowKey]: ToneKey };
-type ProfileInput = {
-  client_name: string; company_name: string; whatsapp_number?: string;
-  signature: string; tone_preference: string; custom_prompt_context: string;
-  is_active: boolean; [k: string]: unknown;
+type ProfileFields = {
+  client_name: string;
+  company_name: string;
+  signature: string;
+  tone_preference: string;
+  custom_prompt_context: string;
+  is_active: boolean;
 };
-type FormState = Required<Omit<ProfileUpdateBody, "greeting_style" | "is_active">>
-  & { is_active: boolean } & PerTypeToneState;
-
-// Data derived from JSON — no inline literals in this file
-const TONE_DATA = toneDataJson as Record<ToneKey, ToneMeta>;
-const TONE_ROWS = toneRowsJson as ToneRow[];
-const TONE_KEYS = Object.keys(TONE_DATA) as ToneKey[];
-const TONE_OPTIONS = TONE_KEYS.map(k => ({ value: k, label: TONE_DATA[k].label }));
-const DEFAULT_TONE = "professionnel" as ToneKey;
+// ProfileInput: raw API shape (whatsapp_number optional).
+type ProfileInput = ProfileFields & { whatsapp_number?: string };
+// FormState: controlled form shape (whatsapp_number always a string).
+type FormState = ProfileFields & { whatsapp_number: string };
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-function instructionToTone(instruction: string | undefined): ToneKey {
-  if (!instruction) return DEFAULT_TONE;
-  return TONE_KEYS.find(k => TONE_DATA[k].instruction === instruction) ?? DEFAULT_TONE;
-}
-
-function emptyPromptTones(): Record<string, string> {
-  return Object.fromEntries(TONE_ROWS.map(r => [r.promptField, ""]));
-}
-
 function emptyForm(): FormState {
-  const perType = Object.fromEntries(TONE_ROWS.map(r => [r.key, DEFAULT_TONE])) as PerTypeToneState;
   return {
     client_name: "", company_name: "", whatsapp_number: "", signature: "",
-    tone_preference: DEFAULT_TONE, custom_prompt_context: "",
-    is_active: false, ...emptyPromptTones(), ...perType,
-  } as FormState;
+    tone_preference: DEFAULT_TONE, custom_prompt_context: "", is_active: false,
+  };
 }
 
 function profileToForm(p: ProfileInput): FormState {
-  const prompts = Object.fromEntries(TONE_ROWS.map(r => [r.promptField, (p[r.promptField] as string) ?? ""]));
-  const tones = Object.fromEntries(TONE_ROWS.map(r => [r.key, instructionToTone(p[r.promptField] as string | undefined)])) as PerTypeToneState;
   return {
-    client_name: p.client_name ?? "", company_name: p.company_name ?? "",
-    whatsapp_number: (p.whatsapp_number as string) ?? "", signature: p.signature ?? "",
+    client_name: p.client_name ?? "",
+    company_name: p.company_name ?? "",
+    whatsapp_number: p.whatsapp_number ?? "",
+    signature: p.signature ?? "",
     tone_preference: p.tone_preference ?? DEFAULT_TONE,
     custom_prompt_context: p.custom_prompt_context ?? "",
-    is_active: p.is_active ?? false, ...prompts, ...tones,
-  } as FormState;
+    is_active: p.is_active ?? false,
+  };
 }
 
 function buildUpdateBody(form: FormState): ProfileUpdateBody {
-  const { client_name, company_name, whatsapp_number, signature, tone_preference, custom_prompt_context } = form;
-  const prompts = Object.fromEntries(TONE_ROWS.map(r => [r.promptField, form[r.promptField as keyof FormState] as string]));
-  return { client_name, company_name, whatsapp_number, signature, tone_preference, custom_prompt_context, ...prompts };
+  return {
+    client_name: form.client_name,
+    company_name: form.company_name,
+    whatsapp_number: form.whatsapp_number,
+    signature: form.signature,
+    tone_preference: form.tone_preference,
+    custom_prompt_context: form.custom_prompt_context,
+  };
 }
 
 async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
   set(true);
   try { await fn(); } finally { set(false); }
-}
-
-// ─── sub-components ───────────────────────────────────────────────────────────
-
-function ToneSelect({ value, onChange }: { value: ToneKey; onChange: (v: string) => void }) {
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      className="w-full max-w-[200px] px-3 py-2 rounded-xl bg-[#12121a] border border-[#2a2a3a] text-[#f0f0f5] text-sm transition-colors outline-none focus:ring-2 focus:ring-[#4f6ef7]/40 focus:border-[#4f6ef7]/60"
-    >
-      {TONE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  );
 }
 
 // ─── page component ───────────────────────────────────────────────────────────
@@ -101,17 +71,12 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
 
-  useEffect(() => { if (profile) setForm(profileToForm(profile as unknown as ProfileInput)); }, [profile]);
-
+  useEffect(() => {
+    if (profile) setForm(profileToForm(profile as unknown as ProfileInput));
+  }, [profile]);
   function setField(field: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [field]: value }));
   }
-
-  function handleToneChange(row: ToneRow, value: string) {
-    const tone = value as ToneKey;
-    setForm(prev => ({ ...prev, [row.key]: tone, [row.promptField]: TONE_DATA[tone].instruction }));
-  }
-
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     await withLoading(setSaving, async () => {
@@ -193,41 +158,6 @@ export default function ProfilePage() {
               onChange={e => setField("custom_prompt_context", e.target.value)}
               placeholder="Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."
               hint="Ces informations aident Sendia à mieux comprendre votre contexte métier." />
-          </div>
-        </div>
-
-        <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-[#2a2a3a]">
-            <h2 className="text-base font-semibold text-[#f0f0f5]">Ton de réponse par type d'email</h2>
-            <p className="text-xs text-[#66667a] mt-1">
-              Choisissez un ton spécifique pour chaque catégorie d'email.
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#2a2a3a]">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-[#66667a] uppercase tracking-wider w-1/2">
-                    Type d'email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-[#66667a] uppercase tracking-wider w-1/2">
-                    Ton
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {TONE_ROWS.map((row, idx) => (
-                  <tr key={row.key} className={idx < TONE_ROWS.length - 1 ? "border-b border-[#2a2a3a]/60" : ""}>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-[#f0f0f5]">{row.label}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <ToneSelect value={form[row.key]} onChange={v => handleToneChange(row, v)} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
 

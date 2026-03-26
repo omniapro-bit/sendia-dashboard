@@ -1,7 +1,0 @@
-[
-  { "key": "devis",   "label": "Devis",   "promptField": "prompt_devis" },
-  { "key": "lead",    "label": "Lead",    "promptField": "prompt_lead" },
-  { "key": "support", "label": "Support", "promptField": "prompt_support" },
-  { "key": "relance", "label": "Relance", "promptField": "prompt_relance" },
-  { "key": "autre",   "label": "Général", "promptField": "prompt_autre" }
-]

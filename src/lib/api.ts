@@ -8,6 +8,7 @@ import type {
   BillingPlan,
   AdvancedStats,
   CalendarEventsResponse,
+  ActivityResponse,
 } from "./types";
 
 const API_BASE = "https://api.getsendia.com/api/client";
@@ -106,4 +107,6 @@ export const api = {
     apiFetch<CalendarEventsResponse>("/calendar/events"),
   exportCSV: (period: string) =>
     apiFetchBlob(`/emails/export?period=${period}`),
+  getActivity: () =>
+    apiFetch<ActivityResponse>("/activity"),
 };
