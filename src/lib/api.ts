@@ -111,6 +111,8 @@ export const api = {
       email_verified: boolean;
       profile_complete: boolean;
       email_connected: boolean;
+      gmail_connected: boolean;
+      outlook_connected: boolean;
       documents_uploaded: boolean;
       ready: boolean;
     }>("POST", "/onboarding-status", {}),

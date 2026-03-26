@@ -107,45 +107,73 @@ function ProviderLink(props: { href: string; id: ProviderId; label: string; icon
 
 // ─── Email connection section ──────────────────────────────────────────────────
 
+function ConnectedProviderRow({ label, email }: { label: string; email?: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <CheckCircleIcon />
+      <div>
+        <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
+          {label} connecté
+          <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
+        </p>
+        {email && <p className="text-xs text-[#9999b0] mt-0.5">{email}</p>}
+      </div>
+    </div>
+  );
+}
+
 function EmailConnectionSection(props: {
-  emailConnected: boolean;
+  gmailConnected: boolean;
+  outlookConnected: boolean;
   emailLoading: boolean;
-  provider: string | undefined;
   clientEmail: string | undefined;
   hrefs: ProviderHrefs;
 }) {
-  const { emailConnected, emailLoading, provider, clientEmail, hrefs } = props;
-  const isGmail = emailConnected && provider === "gmail";
-  const isOutlook = emailConnected && provider === "outlook";
-  const providerLabel = isGmail ? "Gmail" : isOutlook ? "Outlook" : "Email";
+  const { gmailConnected, outlookConnected, emailLoading, clientEmail, hrefs } = props;
+  const anyConnected = gmailConnected || outlookConnected;
+  const bothConnected = gmailConnected && outlookConnected;
+
   const compactCls = (active: boolean) =>
     `px-4 py-2.5 rounded-xl text-sm font-medium ${active
       ? "bg-white/10 text-[#f0f0f5] border border-green-500/30"
       : "bg-[#1a1a2a] text-[#9999b0] border border-[#2a2a3a] hover:border-[#4f6ef7]"}`;
 
-  const borderCls = emailLoading || !emailConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
+  const borderCls = emailLoading || !anyConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
+
   const body = emailLoading ? (
     <div className="flex justify-center py-4"><Spinner size="md" /></div>
-  ) : emailConnected ? (
+  ) : bothConnected ? (
     <>
       <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecté</h2>
-      <div className="flex items-center gap-3 mb-4">
-        <CheckCircleIcon />
-        <div>
-          <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
-            {providerLabel} connecté
-            <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
-          </p>
-          {clientEmail && <p className="text-xs text-[#9999b0] mt-0.5">{clientEmail}</p>}
-        </div>
+      <div className="flex flex-col gap-3 mb-4">
+        <ConnectedProviderRow label="Gmail" email={clientEmail} />
+        <ConnectedProviderRow label="Outlook" />
       </div>
       <div className="pt-4 border-t border-[#2a2a3a]">
-        <p className="text-xs text-[#66667a] mb-3">Changer de fournisseur :</p>
+        <p className="text-xs text-[#66667a] mb-3">Reconnecter un fournisseur :</p>
         <div className="flex gap-3 flex-wrap">
           <ProviderLink href={hrefs.gmail} id="gmail" iconSize={16}
-            label={isGmail ? "Gmail (actif)" : "Gmail"} className={compactCls(isGmail)} />
+            label="Gmail (actif)" className={compactCls(true)} />
           <ProviderLink href={hrefs.outlook} id="outlook" iconSize={16}
-            label={isOutlook ? "Outlook (actif)" : "Outlook"} className={compactCls(isOutlook)} />
+            label="Outlook (actif)" className={compactCls(true)} />
+        </div>
+      </div>
+    </>
+  ) : anyConnected ? (
+    <>
+      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecté</h2>
+      <div className="mb-4">
+        <ConnectedProviderRow label={gmailConnected ? "Gmail" : "Outlook"} email={clientEmail} />
+      </div>
+      <div className="pt-4 border-t border-[#2a2a3a]">
+        <p className="text-xs text-[#66667a] mb-3">
+          {gmailConnected ? "Connecter Outlook également :" : "Connecter Gmail également :"}
+        </p>
+        <div className="flex gap-3 flex-wrap">
+          <ProviderLink href={hrefs.gmail} id="gmail" iconSize={16}
+            label={gmailConnected ? "Gmail (actif)" : "Connecter Gmail"} className={compactCls(gmailConnected)} />
+          <ProviderLink href={hrefs.outlook} id="outlook" iconSize={16}
+            label={outlookConnected ? "Outlook (actif)" : "Connecter Outlook"} className={compactCls(outlookConnected)} />
         </div>
       </div>
     </>
@@ -235,7 +263,8 @@ function ProfileContent() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
-  const [emailConnected, setEmailConnected] = useState(false);
+  const [gmailConnected, setGmailConnected] = useState(false);
+  const [outlookConnected, setOutlookConnected] = useState(false);
   const [emailLoading, setEmailLoading] = useState(true);
 
   // Detect OAuth callback redirect (?connected=gmail or ?connected=outlook) — fire once only
@@ -256,7 +285,10 @@ function ProfileContent() {
     if (profile) setForm(profileToForm(profile as unknown as ProfileInput));
     api
       .getOnboardingStatus()
-      .then((s) => setEmailConnected(s.email_connected))
+      .then((s) => {
+        setGmailConnected(s.gmail_connected ?? s.email_connected);
+        setOutlookConnected(s.outlook_connected ?? false);
+      })
       .catch(() => {})
       .finally(() => setEmailLoading(false));
   }, [profile]);
@@ -308,9 +340,9 @@ function ProfileContent() {
 
       {/* Section 1: Email connection */}
       <EmailConnectionSection
-        emailConnected={emailConnected}
+        gmailConnected={gmailConnected}
+        outlookConnected={outlookConnected}
         emailLoading={emailLoading}
-        provider={profile?.email_provider as string | undefined}
         clientEmail={profile?.client_email}
         hrefs={hrefs}
       />
@@ -319,7 +351,7 @@ function ProfileContent() {
       <div className="bg-[#12121a] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm font-semibold text-[#f0f0f5]">Statut Sendia</p>
-          {emailConnected ? (
+          {(gmailConnected || outlookConnected) ? (
             <p className={`text-xs mt-0.5 ${isActive ? "text-emerald-400" : "text-[#66667a]"}`}>
               {isActive ? "Actif — votre assistant traite vos emails" : "Inactif — aucun email ne sera traité"}
             </p>
@@ -330,7 +362,7 @@ function ProfileContent() {
           )}
         </div>
         <Toggle checked={isActive} onChange={handleToggle}
-          disabled={toggling || !emailConnected} label={isActive ? "Actif" : "Inactif"} />
+          disabled={toggling || (!gmailConnected && !outlookConnected)} label={isActive ? "Actif" : "Inactif"} />
       </div>
 
       {/* Section 2b: Current plan */}
