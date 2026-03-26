@@ -398,8 +398,8 @@ function ProfileContent() {
             onChange={(e) => setField("company_name", e.target.value)} placeholder="Acme SAS" />
           <Input label="Numéro WhatsApp" value={form.whatsapp_number}
             onChange={(e) => setField("whatsapp_number", e.target.value.replace(/[^0-9]/g, ""))}
-            placeholder="33664365030"
-            hint="Format international sans + ni espaces (ex: 33664365030)" />
+            placeholder="33612345678"
+            hint="Format international sans + ni espaces (ex: 33612345678)" />
         </CardSection>
 
         {/* Section 4: Response settings */}
