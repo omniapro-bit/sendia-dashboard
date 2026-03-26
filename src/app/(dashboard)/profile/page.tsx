@@ -434,10 +434,28 @@ function ProfileContent() {
         <CardSection title="Paramètres de réponse">
           <Select label="Ton par défaut" value={form.tone_preference}
             onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
-          <Textarea label="Signature" value={form.signature} rows={4}
-            onChange={(e) => setField("signature", e.target.value)}
-            placeholder={"Cordialement,\nJean Dupont"}
-            hint="Cette signature sera ajoutée à la fin de chaque réponse." />
+          <div>
+            <label className="block text-sm font-medium text-[#9999b0] mb-1.5">Signature</label>
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              className="w-full min-h-[120px] rounded-xl border border-[#2a2a3a] bg-[#0f0f18] px-4 py-3 text-sm text-[#f0f0f5] focus:outline-none focus:border-[#4f6ef7] transition-colors"
+              style={{ lineHeight: 1.5 }}
+              dangerouslySetInnerHTML={{ __html: form.signature || "" }}
+              onBlur={(e) => setField("signature", e.currentTarget.innerHTML)}
+              onPaste={(e) => {
+                // Allow rich paste (HTML with images/formatting from email clients)
+                const html = e.clipboardData.getData("text/html");
+                if (html) {
+                  e.preventDefault();
+                  document.execCommand("insertHTML", false, html);
+                }
+              }}
+            />
+            <p className="text-xs text-[#66667a] mt-1.5">
+              Collez votre signature depuis Gmail ou Outlook — les images et la mise en forme sont conservées.
+            </p>
+          </div>
           <Textarea label="Contexte personnalise" value={form.custom_prompt_context} rows={5}
             onChange={(e) => setField("custom_prompt_context", e.target.value)}
             placeholder="Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."

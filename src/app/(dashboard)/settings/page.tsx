@@ -216,7 +216,7 @@ export default function SettingsPage() {
             <p className="text-xs text-[#66667a] mt-0.5">Toutes vos données seront définitivement supprimées. Cette action est irréversible.</p>
           </div>
           <a
-            href="mailto:support@getsendia.com?subject=Demande%20de%20suppression%20de%20compte&body=Bonjour%2C%0A%0AJe%20souhaite%20supprimer%20mon%20compte%20Sendia.%0A%0AEmail%20du%20compte%20%3A%20%0A%0AMerci."
+            href="mailto:contact@getsendia.com?subject=Demande%20de%20suppression%20de%20compte&body=Bonjour%2C%0A%0AJe%20souhaite%20supprimer%20mon%20compte%20Sendia.%0A%0AEmail%20du%20compte%20%3A%20%0A%0AMerci."
             className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-[#f87171]/10 border border-[#f87171]/30 text-[#f87171] hover:bg-[#f87171]/20 transition-colors no-underline"
           >
             Contacter le support

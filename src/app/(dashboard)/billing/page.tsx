@@ -151,11 +151,7 @@ function TrialView({ status, onSelect, loadingPlan }: {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-[#66667a] mb-1">Plan actuel</p>
           <p className="text-lg font-bold text-[#f0f0f5]">Essai gratuit</p>
-          {status.emails_limit !== null && (
-            <p className="text-xs text-[#66667a] mt-2">
-              {status.emails_used_this_month} emails utilisés sur {status.emails_limit} ce mois
-            </p>
-          )}
+          {/* Email usage counter disabled for now */}
         </div>
         <StatusBadge label={`Essai — ${days}j restants`} color={days <= 3 ? "red" : "amber"} />
       </div>
@@ -198,19 +194,7 @@ function ActiveView({ status, onPortal, loadingPortal }: {
           {loadingPortal ? "Chargement…" : "Gérer mon abonnement"}
         </button>
       </div>
-      <div className="mt-6 bg-[#12121a] border border-[#2a2a3a] rounded-2xl p-6">
-        <p className="text-sm font-semibold text-[#f0f0f5] mb-4">Utilisation ce mois</p>
-        <div className="flex items-center justify-between text-xs text-[#66667a] mb-2">
-          <span>Emails traités</span>
-          <span>{status.emails_used_this_month}{status.emails_limit ? ` / ${status.emails_limit}` : ""}</span>
-        </div>
-        {status.emails_limit && (
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1c1c28" }}>
-            <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${usagePercent}%`, background: usagePercent > 80 ? "#f87171" : "linear-gradient(90deg, #4f6ef7, #a78bfa)" }} />
-          </div>
-        )}
-      </div>
+      {/* Email usage section disabled for now */}
     </>
   );
 }
