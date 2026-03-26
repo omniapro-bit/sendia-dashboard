@@ -9,6 +9,7 @@ import type {
   AdvancedStats,
   CalendarEventsResponse,
   ActivityResponse,
+  ClientPlan,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
@@ -129,4 +130,6 @@ export const api = {
     apiFetchBlob(`/emails/export?period=${period}`),
   getActivity: () =>
     apiFetch<ActivityResponse>("/activity"),
+  getClientPlan: () =>
+    apiFetch<ClientPlan>("/plan"),
 };

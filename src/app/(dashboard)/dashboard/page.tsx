@@ -9,7 +9,7 @@ import { ResponsiveContainer, Legend } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { AdvancedStats, ClientStats, Email } from "@/lib/types";
+import type { AdvancedStats, ClientStats, ClientPlan, Email } from "@/lib/types";
 import { StatCard } from "@/components/StatCard";
 import { EmailTable } from "@/components/EmailTable";
 import { Spinner } from "@/components/ui/Spinner";
@@ -206,6 +206,7 @@ export default function DashboardPage() {
   const [advancedStats, setAdvancedStats] = useState<AdvancedStats | null>(null);
   const [loadingCharts, setLoadingCharts] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [clientPlan, setClientPlan] = useState<ClientPlan | null>(null);
   // Fetched independently so the wizard shows correct email connection status
   // even when n8n stored OAuth tokens on a different row than the one linked by user_id.
   const [emailConnected, setEmailConnected] = useState(false);
@@ -226,6 +227,7 @@ export default function DashboardPage() {
       .finally(() => setLoadingCharts(false));
   }, [period]);
   useEffect(() => { api.getOnboardingStatus().then(s => setEmailConnected(s.email_connected)).catch(() => {}); }, []);
+  useEffect(() => { api.getClientPlan().then(setClientPlan).catch(() => {}); }, []);
 
   const handleExportCSV = useCallback(async () => {
     setExporting(true);
@@ -292,17 +294,36 @@ export default function DashboardPage() {
           <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, marginBottom: 24, overflow: "hidden" }}>
             <div className="px-6 py-4 border-b border-[#2a2a3a]">
               <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-                <h2 className="text-base font-semibold text-[#f0f0f5]">Emails récents</h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-base font-semibold text-[#f0f0f5]">Emails récents</h2>
+                  {clientPlan && (
+                    <span className="text-xs text-[#66667a]">
+                      {clientPlan.features.emails_used_this_month} / {clientPlan.features.max_emails_per_month} emails ce mois
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <FilterGroup options={PERIOD_OPTIONS} active={period} onChange={setPeriod} />
-                  <button
-                    onClick={handleExportCSV}
-                    disabled={exporting}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 disabled:opacity-50"
-                    style={{ background: "#1c1c28", color: "#9999b0", border: "1px solid #2a2a3a" }}
-                  >
-                    {exporting ? "Export…" : "Exporter CSV"}
-                  </button>
+                  {clientPlan?.features.has_email_search === false ? (
+                    <span title="Plan Pro requis">
+                      <button
+                        disabled
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg opacity-40 cursor-not-allowed"
+                        style={{ background: "#1c1c28", color: "#9999b0", border: "1px solid #2a2a3a" }}
+                      >
+                        Exporter CSV
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={handleExportCSV}
+                      disabled={exporting}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 disabled:opacity-50"
+                      style={{ background: "#1c1c28", color: "#9999b0", border: "1px solid #2a2a3a" }}
+                    >
+                      {exporting ? "Export…" : "Exporter CSV"}
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4">

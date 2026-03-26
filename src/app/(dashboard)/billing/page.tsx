@@ -151,6 +151,11 @@ function TrialView({ status, onSelect, loadingPlan }: {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-[#66667a] mb-1">Plan actuel</p>
           <p className="text-lg font-bold text-[#f0f0f5]">Essai gratuit</p>
+          {status.emails_limit !== null && (
+            <p className="text-xs text-[#66667a] mt-2">
+              {status.emails_used_this_month} emails utilisés sur {status.emails_limit} ce mois
+            </p>
+          )}
         </div>
         <StatusBadge label={`Essai — ${days}j restants`} color={days <= 3 ? "red" : "amber"} />
       </div>

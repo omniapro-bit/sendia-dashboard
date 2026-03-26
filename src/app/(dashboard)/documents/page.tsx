@@ -5,6 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { api } from "@/lib/api";
+import { UpgradeGate } from "@/components/UpgradeGate";
+import type { ClientPlan } from "@/lib/types";
 
 type RagDocument = {
   id: string;
@@ -83,6 +86,7 @@ export default function DocumentsPage() {
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [clientPlan, setClientPlan] = useState<ClientPlan | null>(null);
 
   const loadDocuments = useCallback(async () => {
     if (!profile?.client_id) { setDocsLoading(false); return; }
@@ -98,6 +102,7 @@ export default function DocumentsPage() {
   }, [profile?.client_id]);
 
   useEffect(() => { loadDocuments(); }, [loadDocuments]);
+  useEffect(() => { api.getClientPlan().then(setClientPlan).catch(() => {}); }, []);
 
   async function deleteDocument(doc: RagDocument) {
     if (!confirm(`Supprimer "${doc.doc_title}" ? Cette action est irréversible.`)) return;
@@ -255,6 +260,7 @@ export default function DocumentsPage() {
         </div>
       </section>
 
+      <UpgradeGate allowed={clientPlan?.features.has_rag_search ?? true} featureName="Documents RAG">
       <section className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-[#2a2a3a]">
           <h2 className="text-base font-semibold text-[#f0f0f5]">Importer un document</h2>
@@ -317,6 +323,7 @@ export default function DocumentsPage() {
           </div>
         </div>
       </section>
+      </UpgradeGate>
     </div>
   );
 }

@@ -128,11 +128,31 @@ export type Activity = {
 export type ActivityResponse = {
   activities: Activity[];
 };
-
 export type AdvancedStats = {
   daily_counts: DailyCount[];
   by_type: TypeCount[];
   response_rate: number;
   avg_daily: number;
   trend: "up" | "down" | "stable";
+};
+
+export type ClientPlan = {
+  plan: string;
+  plan_status: string;
+  trial_days_left: number;
+  features: {
+    has_agent: boolean;
+    has_modification: boolean;
+    has_compose: boolean;
+    has_rag_search: boolean;
+    has_email_search: boolean;
+    has_conversation_memory: boolean;
+    has_custom_prompt: boolean;
+    has_followup: boolean;
+    has_calendar: boolean;
+    has_multi_mailbox: boolean;
+    max_modifications_per_email: number;
+    max_emails_per_month: number;
+    emails_used_this_month: number;
+  };
 };
