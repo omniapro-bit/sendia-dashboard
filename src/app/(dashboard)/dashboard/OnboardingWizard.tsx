@@ -58,10 +58,8 @@ export function OnboardingWizard({
     if (typeof window !== "undefined") localStorage.setItem("sendia_wizard_dismissed", "true");
   }
 
-  // Auto-hide when all required steps are done
+  // Auto-hide when all required steps are done and user dismissed
   if (allRequiredDone && dismissed) return null;
-  // Don't show wizard at all if everything is configured
-  if (allRequiredDone) return null;
 
   if (allRequiredDone) {
     return (

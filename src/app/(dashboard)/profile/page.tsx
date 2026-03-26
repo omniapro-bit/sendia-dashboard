@@ -154,10 +154,11 @@ function EmailConnectionSection(props: {
   gmailConnected: boolean;
   outlookConnected: boolean;
   emailLoading: boolean;
-  clientEmail: string | undefined;
+  gmailEmail: string | undefined;
+  outlookEmail: string | undefined;
   hrefs: ProviderHrefs;
 }) {
-  const { gmailConnected, outlookConnected, emailLoading, clientEmail, hrefs } = props;
+  const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs } = props;
   const anyConnected = gmailConnected || outlookConnected;
   const borderCls = emailLoading || !anyConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
 
@@ -179,13 +180,13 @@ function EmailConnectionSection(props: {
             <ProviderRow
               id="gmail"
               connected={gmailConnected}
-              email={gmailConnected ? clientEmail : undefined}
+              email={gmailConnected ? gmailEmail : undefined}
               href={hrefs.gmail}
             />
             <ProviderRow
               id="outlook"
               connected={outlookConnected}
-              email={outlookConnected ? clientEmail : undefined}
+              email={outlookConnected ? outlookEmail : undefined}
               href={hrefs.outlook}
             />
           </div>
@@ -264,6 +265,8 @@ function ProfileContent() {
   const [toggling, setToggling] = useState(false);
   const [gmailConnected, setGmailConnected] = useState(false);
   const [outlookConnected, setOutlookConnected] = useState(false);
+  const [gmailEmail, setGmailEmail] = useState<string | null>(null);
+  const [outlookEmail, setOutlookEmail] = useState<string | null>(null);
   const [emailLoading, setEmailLoading] = useState(true);
 
   // Detect OAuth callback redirect (?connected=gmail or ?connected=outlook) — fire once only
@@ -283,10 +286,12 @@ function ProfileContent() {
   useEffect(() => {
     if (profile) setForm(profileToForm(profile as unknown as ProfileInput));
     api
-      .getOnboardingStatus()
-      .then((s) => {
-        setGmailConnected(s.gmail_connected === true);
-        setOutlookConnected(s.outlook_connected ?? false);
+      .getProviders()
+      .then((p) => {
+        setGmailConnected(p.gmail.connected);
+        setOutlookConnected(p.outlook.connected);
+        setGmailEmail(p.gmail.email);
+        setOutlookEmail(p.outlook.email);
       })
       .catch(() => {})
       .finally(() => setEmailLoading(false));
@@ -342,7 +347,8 @@ function ProfileContent() {
         gmailConnected={gmailConnected}
         outlookConnected={outlookConnected}
         emailLoading={emailLoading}
-        clientEmail={profile?.client_email}
+        gmailEmail={gmailEmail ?? undefined}
+        outlookEmail={outlookEmail ?? undefined}
         hrefs={hrefs}
       />
 

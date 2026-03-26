@@ -271,7 +271,7 @@ export default function DashboardPage() {
       {loadingStats ? (
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
-        <div style={{ opacity: onboardingComplete ? 1 : 0.4, pointerEvents: onboardingComplete ? "auto" : "none", transition: "opacity 0.3s" }}>
+        <div style={{ opacity: (onboardingComplete || (stats && stats.month.processed > 0)) ? 1 : 0.4, pointerEvents: (onboardingComplete || (stats && stats.month.processed > 0)) ? "auto" : "none", transition: "opacity 0.3s" }}>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <StatCard label="Aujourd'hui"    value={stats?.today.processed ?? 0} color="blue" />
             <StatCard label="Cette semaine"  value={stats?.week.processed  ?? 0} color="purple" />

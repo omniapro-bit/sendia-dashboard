@@ -134,4 +134,11 @@ export const api = {
     apiFetch<ActivityResponse>("/activity"),
   getClientPlan: () =>
     apiFetch<ClientPlan>("/plan"),
+  getProviders: () =>
+    apiFetch<{
+      gmail: { connected: boolean; email: string | null };
+      outlook: { connected: boolean; email: string | null };
+      primary_provider: string | null;
+      oauth_status: string | null;
+    }>("/providers"),
 };
