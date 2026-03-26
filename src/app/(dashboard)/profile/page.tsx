@@ -110,12 +110,13 @@ function ProviderInfo({ label, email }: { label: string; email?: string }) {
 }
 
 function ProviderRow({
-  id, connected, email, href,
+  id, connected, email, href, onDisconnect,
 }: {
   id: ProviderId;
   connected: boolean;
   email?: string;
   href: string;
+  onDisconnect?: () => void;
 }) {
   const label = id === "gmail" ? "Gmail" : "Outlook";
   if (connected) {
@@ -125,12 +126,22 @@ function ProviderRow({
           <ProviderIcon id={id} size={18} />
           <ProviderInfo label={label} email={email} />
         </div>
-        <a
-          href={href}
-          className="text-xs text-[#66667a] hover:text-[#9999b0] border border-[#2a2a3a] rounded-lg px-2.5 py-1 transition-colors no-underline"
-        >
-          Reconnecter
-        </a>
+        <div className="flex items-center gap-2">
+          {onDisconnect && (
+            <button
+              onClick={onDisconnect}
+              className="text-xs text-red-400/70 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-lg px-2.5 py-1 transition-colors"
+            >
+              Déconnecter
+            </button>
+          )}
+          <a
+            href={href}
+            className="text-xs text-[#66667a] hover:text-[#9999b0] border border-[#2a2a3a] rounded-lg px-2.5 py-1 transition-colors no-underline"
+          >
+            Reconnecter
+          </a>
+        </div>
       </div>
     );
   }
@@ -157,8 +168,9 @@ function EmailConnectionSection(props: {
   gmailEmail: string | undefined;
   outlookEmail: string | undefined;
   hrefs: ProviderHrefs;
+  onDisconnect?: (provider: "gmail" | "outlook") => void;
 }) {
-  const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs } = props;
+  const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs, onDisconnect } = props;
   const anyConnected = gmailConnected || outlookConnected;
   const borderCls = emailLoading || !anyConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
 
@@ -182,12 +194,14 @@ function EmailConnectionSection(props: {
               connected={gmailConnected}
               email={gmailConnected ? gmailEmail : undefined}
               href={hrefs.gmail}
+              onDisconnect={gmailConnected && onDisconnect ? () => onDisconnect("gmail") : undefined}
             />
             <ProviderRow
               id="outlook"
               connected={outlookConnected}
               email={outlookConnected ? outlookEmail : undefined}
               href={hrefs.outlook}
+              onDisconnect={outlookConnected && onDisconnect ? () => onDisconnect("outlook") : undefined}
             />
           </div>
           {!anyConnected && (
@@ -326,6 +340,19 @@ function ProfileContent() {
     });
   }
 
+  async function handleDisconnect(provider: "gmail" | "outlook") {
+    if (!confirm(`Déconnecter ${provider === "gmail" ? "Gmail" : "Outlook"} ? Sendia ne traitera plus vos emails depuis ce compte.`)) return;
+    try {
+      await api.disconnectProvider(provider);
+      if (provider === "gmail") { setGmailConnected(false); setGmailEmail(null); }
+      else { setOutlookConnected(false); setOutlookEmail(null); }
+      await refreshProfile();
+      toast(`${provider === "gmail" ? "Gmail" : "Outlook"} déconnecté.`, "success");
+    } catch {
+      toast("Erreur lors de la déconnexion.", "error");
+    }
+  }
+
   if (profileLoading) {
     return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
   }
@@ -350,6 +377,7 @@ function ProfileContent() {
         gmailEmail={gmailEmail ?? undefined}
         outlookEmail={outlookEmail ?? undefined}
         hrefs={hrefs}
+        onDisconnect={handleDisconnect}
       />
 
       {/* Section 2: Sendia status toggle */}

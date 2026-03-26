@@ -141,4 +141,6 @@ export const api = {
       primary_provider: string | null;
       oauth_status: string | null;
     }>("/providers"),
+  disconnectProvider: (provider: "gmail" | "outlook") =>
+    apiMutate<{ ok: boolean; disconnected: string }>("POST", "/disconnect-provider", { provider }),
 };

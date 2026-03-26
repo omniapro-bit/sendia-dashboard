@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // Check trial expiration — redirect to billing if expired (but not if already on billing)
     if (pathname !== "/billing") {
       api.getBillingStatus().then((s: any) => {
-        if (s?.plan_status === "expired" || s?.plan_status === "canceled") {
+        if (s?.status === "expired" || s?.status === "canceled") {
           router.replace("/billing");
         }
       }).catch(() => {});
