@@ -28,7 +28,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthCard title="Connexion" subtitle="Accedez a votre tableau de bord.">
+    <AuthCard title="Connexion" subtitle="Accédez à votre tableau de bord.">
       <form onSubmit={handleSubmit} className="flex flex-col gap-[18px]">
         <Input label="Email" type="email" value={email}
           onChange={e => setEmail(e.target.value)}
@@ -39,7 +39,7 @@ export default function LoginPage() {
             placeholder="••••••••" required autoComplete="current-password" />
           <div className="flex justify-end mt-2">
             <Link href="/forgot-password" className="text-[0.82rem] text-[#66667a] hover:text-[#6b85ff] transition-colors">
-              Mot de passe oublie ?
+              Mot de passe oublié ?
             </Link>
           </div>
         </div>
