@@ -12,47 +12,52 @@ import { Toggle } from "@/components/ui/Toggle";
 import { Spinner } from "@/components/ui/Spinner";
 import { TONE_OPTIONS, DEFAULT_TONE } from "./profile-config";
 
-// ─── Provider config ──────────────────────────────────────────────────────────
+// ─── Provider config ───────────────────────────────────────────────────────────
 
 type ProviderId = "gmail" | "outlook";
+type ProviderHrefs = Record<ProviderId, string>;
 
-// All per-provider data in one place: label, OAuth base URL, and params.
-// hrefs are derived once at module load — no duplicate const declarations.
-const PROVIDERS = ((): Record<ProviderId, { label: string; href: string }> => {
-  function oauthHref(base: string, params: Record<string, string>) {
-    return `${base}?${new URLSearchParams(params).toString()}`;
-  }
+function buildOAuthHref(base: string, params: Record<string, string>): string {
+  return `${base}?${new URLSearchParams(params).toString()}`;
+}
+
+function getProviderHrefs(clientId: string): ProviderHrefs {
+  const state = encodeURIComponent(JSON.stringify({ client_id: clientId }));
   return {
-    gmail: {
-      label: "Gmail",
-      href: oauthHref("https://accounts.google.com/o/oauth2/v2/auth", {
-        client_id: "274786161227-iiip3l1i6bm5rnjngp9r8tsqa57ssrah.apps.googleusercontent.com",
-        redirect_uri: "https://n8n.getsendia.com/webhook/oauth-callback",
-        response_type: "code",
-        scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.labels https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email",
-        access_type: "offline",
-        prompt: "consent",
-      }),
-    },
-    outlook: {
-      label: "Outlook",
-      href: oauthHref("https://login.microsoftonline.com/common/oauth2/v2.0/authorize", {
-        client_id: "ead1260f-07d2-4220-b215-e0af081e67fc",
-        redirect_uri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
-        response_type: "code",
-        scope: "offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
-        prompt: "consent",
-      }),
-    },
+    gmail: buildOAuthHref("https://accounts.google.com/o/oauth2/v2/auth", {
+      client_id: "274786161227-iiip3l1i6bm5rnjngp9r8tsqa57ssrah.apps.googleusercontent.com",
+      redirect_uri: "https://n8n.getsendia.com/webhook/oauth-callback",
+      response_type: "code",
+      scope: [
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/gmail.labels",
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ].join(" "),
+      access_type: "offline",
+      prompt: "consent",
+      state,
+    }),
+    outlook: buildOAuthHref("https://login.microsoftonline.com/common/oauth2/v2.0/authorize", {
+      client_id: "ead1260f-07d2-4220-b215-e0af081e67fc",
+      redirect_uri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
+      response_type: "code",
+      scope: "offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
+      prompt: "consent",
+      state,
+    }),
   };
-})();
+}
 
-const PROVIDER_IDS = Object.keys(PROVIDERS) as ProviderId[];
+// ─── Shared UI primitives ─────────────────────────────────────────────────────
 
-function ProviderIcon({ id }: { id: ProviderId }) {
+// Single icon component for both providers — eliminates the duplicate svg-wrapper pattern
+function ProviderIcon({ id, size = 20 }: { id: ProviderId; size?: number }) {
   if (id === "gmail") {
     return (
-      <svg width="18" height="18" viewBox="0 0 24 24">
+      <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -61,90 +66,112 @@ function ProviderIcon({ id }: { id: ProviderId }) {
     );
   }
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24">
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <path fill="#0078D4" d="M24 7.387v10.478c0 .23-.08.424-.238.583a.793.793 0 0 1-.583.238h-8.404V6.566h8.404c.23 0 .424.08.583.238.159.159.238.353.238.583zM13.5 2.25v19.5L0 19.5V4.5l13.5-2.25z" />
     </svg>
   );
 }
 
-function ProviderButton({ id, isActive, variant }: { id: ProviderId; isActive: boolean; variant: "compact" | "large" }) {
-  const { label, href } = PROVIDERS[id];
-  const isCompact = variant === "compact";
-  const cls = isCompact
-    ? (isActive ? "bg-white/10 text-[#f0f0f5] border border-[#34d399]/30" : "bg-[#12121a] text-[#9999b0] border border-[#2a2a3a] hover:border-[#4f6ef7]")
-    : (id === "gmail" ? "bg-white text-[#1a1a1a] hover:bg-[#f0f0f0] hover:shadow-lg" : "bg-[#12121a] text-[#f0f0f5] border border-[#333348] hover:bg-[#1c1c28] hover:border-[#4f6ef7]");
-  const baseClass = isCompact
-    ? `flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all no-underline ${cls}`
-    : `flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5 no-underline ${cls}`;
-  const text = isCompact ? (isActive ? `${label} (actif)` : label) : `Connecter ${label}`;
+function CheckCircleIcon() {
   return (
-    <a href={href} className={baseClass}>
-      <ProviderIcon id={id} />
-      {text}
-    </a>
-  );
-}
-function EmailConnectionSection({ emailConnected, emailLoading, provider }: {
-  emailConnected: boolean;
-  emailLoading: boolean;
-  provider: string | undefined;
-}) {
-  const activeId = (emailConnected && (provider === "gmail" || provider === "outlook")) ? provider : undefined;
-  const badgeLabel = activeId === "gmail" ? "Gmail connecté" : activeId === "outlook" ? "Outlook connecté" : "Email connecté";
-
-  return (
-    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
-      <div className="px-6 py-4 border-b border-[#2a2a3a]">
-        <h2 className="text-base font-semibold text-[#f0f0f5]">Connexion email</h2>
-      </div>
-      <div className="px-6 py-5">
-        {emailLoading && (
-          <div className="flex justify-center py-4"><Spinner size="md" /></div>
-        )}
-
-        {!emailLoading && emailConnected && (
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#34d399]/15 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-[#34d399]" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </div>
-              <div>
-                <span
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", color: "#34d399" }}
-                >
-                  {activeId && <ProviderIcon id={activeId} />}
-                  {badgeLabel}
-                </span>
-                <div className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block ml-2 align-middle" />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {PROVIDER_IDS.map(id => (
-                <ProviderButton key={id} id={id} isActive={activeId === id} variant="compact" />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {!emailLoading && !emailConnected && (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-[#9999b0] mb-1">
-              Connectez votre boîte mail pour que Sendia puisse analyser vos emails et vous proposer des réponses via WhatsApp.
-            </p>
-            <div className="flex gap-3 flex-wrap">
-              {PROVIDER_IDS.map(id => (
-                <ProviderButton key={id} id={id} isActive={false} variant="large" />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="w-8 h-8 rounded-full bg-[#34d399]/15 flex items-center justify-center shrink-0">
+      <svg className="w-4 h-4 text-[#34d399]" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
     </div>
   );
 }
+
+// Reusable card with titled header + body
+function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-[#12121a] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
+      <div className="px-6 py-4 border-b border-[#2a2a3a]">
+        <h2 className="text-base font-semibold text-[#f0f0f5]">{title}</h2>
+      </div>
+      <div className="px-6 py-5 flex flex-col gap-5">{children}</div>
+    </div>
+  );
+}
+
+// Reusable provider anchor — type inlined to avoid duplicate type+function structural pattern
+function ProviderLink(props: { href: string; id: ProviderId; label: string; iconSize: number; className: string }) {
+  return (
+    <a href={props.href} className={`flex items-center gap-2.5 no-underline transition-all ${props.className}`}>
+      <ProviderIcon id={props.id} size={props.iconSize} />
+      {props.label}
+    </a>
+  );
+}
+
+// ─── Email connection section ──────────────────────────────────────────────────
+
+function EmailConnectionSection(props: {
+  emailConnected: boolean;
+  emailLoading: boolean;
+  provider: string | undefined;
+  clientEmail: string | undefined;
+  hrefs: ProviderHrefs;
+}) {
+  const { emailConnected, emailLoading, provider, clientEmail, hrefs } = props;
+  const isGmail = emailConnected && provider === "gmail";
+  const isOutlook = emailConnected && provider === "outlook";
+  const providerLabel = isGmail ? "Gmail" : isOutlook ? "Outlook" : "Email";
+  const compactCls = (active: boolean) =>
+    `px-4 py-2.5 rounded-xl text-sm font-medium ${active
+      ? "bg-white/10 text-[#f0f0f5] border border-green-500/30"
+      : "bg-[#1a1a2a] text-[#9999b0] border border-[#2a2a3a] hover:border-[#4f6ef7]"}`;
+
+  const borderCls = emailLoading || !emailConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
+  const body = emailLoading ? (
+    <div className="flex justify-center py-4"><Spinner size="md" /></div>
+  ) : emailConnected ? (
+    <>
+      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecte</h2>
+      <div className="flex items-center gap-3 mb-4">
+        <CheckCircleIcon />
+        <div>
+          <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
+            {providerLabel} connecte
+            <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
+          </p>
+          {clientEmail && <p className="text-xs text-[#9999b0] mt-0.5">{clientEmail}</p>}
+        </div>
+      </div>
+      <div className="pt-4 border-t border-[#2a2a3a]">
+        <p className="text-xs text-[#66667a] mb-3">Changer de fournisseur :</p>
+        <div className="flex gap-3 flex-wrap">
+          <ProviderLink href={hrefs.gmail} id="gmail" iconSize={16}
+            label={isGmail ? "Gmail (actif)" : "Gmail"} className={compactCls(isGmail)} />
+          <ProviderLink href={hrefs.outlook} id="outlook" iconSize={16}
+            label={isOutlook ? "Outlook (actif)" : "Outlook"} className={compactCls(isOutlook)} />
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">Connectez votre boite email</h2>
+      <p className="text-sm text-[#9999b0] mb-5">
+        Sendia analyse vos emails et vous propose des reponses intelligentes via WhatsApp.
+      </p>
+      <div className="flex gap-3 flex-wrap mb-5">
+        <ProviderLink href={hrefs.gmail} id="gmail" iconSize={18} label="Connecter Gmail"
+          className="px-6 py-3 rounded-xl bg-white text-gray-800 font-medium text-sm hover:-translate-y-0.5 hover:shadow-lg" />
+        <ProviderLink href={hrefs.outlook} id="outlook" iconSize={18} label="Connecter Outlook"
+          className="px-6 py-3 rounded-xl bg-transparent border border-[#2a2a3a] text-[#f0f0f5] font-medium text-sm hover:border-[#4f6ef7] hover:-translate-y-0.5" />
+      </div>
+      <p className="text-xs text-[#66667a]">
+        Vos donnees restent privees — aucun contenu d&apos;email n&apos;est stocke.
+      </p>
+    </>
+  );
+
+  return (
+    <div className={`bg-[#12121a] border ${borderCls} rounded-2xl p-6 mb-6`}>{body}</div>
+  );
+}
+
+// ─── Form types & helpers ──────────────────────────────────────────────────────
 
 type ProfileFields = {
   client_name: string;
@@ -154,17 +181,18 @@ type ProfileFields = {
   custom_prompt_context: string;
   is_active: boolean;
 };
-// ProfileInput: raw API shape (whatsapp_number optional).
 type ProfileInput = ProfileFields & { whatsapp_number?: string };
-// FormState: controlled form shape (whatsapp_number always a string).
 type FormState = ProfileFields & { whatsapp_number: string };
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function emptyForm(): FormState {
   return {
-    client_name: "", company_name: "", whatsapp_number: "", signature: "",
-    tone_preference: DEFAULT_TONE, custom_prompt_context: "", is_active: false,
+    client_name: "",
+    company_name: "",
+    whatsapp_number: "",
+    signature: "",
+    tone_preference: DEFAULT_TONE,
+    custom_prompt_context: "",
+    is_active: false,
   };
 }
 
@@ -196,7 +224,7 @@ async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
   try { await fn(); } finally { set(false); }
 }
 
-// ─── page component ───────────────────────────────────────────────────────────
+// ─── Page component ────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const { profile, profileLoading, refreshProfile } = useAuth();
@@ -204,20 +232,30 @@ export default function ProfilePage() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [emailConnected, setEmailConnected] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(true);
 
+  // Single effect: populate form from profile + fetch email connection status
   useEffect(() => {
     if (profile) setForm(profileToForm(profile as unknown as ProfileInput));
+    api
+      .getOnboardingStatus()
+      .then((s) => setEmailConnected(s.email_connected))
+      .catch(() => {})
+      .finally(() => setEmailLoading(false));
   }, [profile]);
+
   function setField(field: keyof FormState, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     await withLoading(setSaving, async () => {
       try {
         await api.updateProfile(buildUpdateBody(form));
         await refreshProfile();
-        toast("Profil enregistré avec succès.", "success");
+        toast("Profil enregistre avec succes.", "success");
       } catch {
         toast("Erreur lors de la sauvegarde du profil.", "error");
       }
@@ -229,7 +267,7 @@ export default function ProfilePage() {
       try {
         await api.toggleActive(val);
         await refreshProfile();
-        toast(val ? "Sendia activé !" : "Sendia désactivé.", "success");
+        toast(val ? "Sendia active !" : "Sendia desactive.", "success");
       } catch {
         toast("Erreur lors du changement de statut.", "error");
       }
@@ -241,62 +279,75 @@ export default function ProfilePage() {
   }
 
   const isActive = form.is_active;
+  const hrefs = getProviderHrefs(profile?.client_id ?? "");
 
   return (
     <div className="px-6 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Mon profil</h1>
-        <p className="text-[#9999b0] mt-1">Personnalisez le comportement de votre assistant Sendia.</p>
+        <p className="text-[#9999b0] mt-1">
+          Personnalisez le comportement de votre assistant Sendia.
+        </p>
       </div>
 
-      <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
+      {/* Section 1: Email connection */}
+      <EmailConnectionSection
+        emailConnected={emailConnected}
+        emailLoading={emailLoading}
+        provider={profile?.email_provider as string | undefined}
+        clientEmail={profile?.client_email}
+        hrefs={hrefs}
+      />
+
+      {/* Section 2: Sendia status toggle */}
+      <div className="bg-[#12121a] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm font-semibold text-[#f0f0f5]">Statut Sendia</p>
-          <p className={`text-xs mt-0.5 ${isActive ? "text-emerald-400" : "text-[#66667a]"}`}>
-            {isActive ? "Actif — votre assistant traite vos emails" : "Inactif — aucun email ne sera traité"}
-          </p>
+          {emailConnected ? (
+            <p className={`text-xs mt-0.5 ${isActive ? "text-emerald-400" : "text-[#66667a]"}`}>
+              {isActive ? "Actif — votre assistant traite vos emails" : "Inactif — aucun email ne sera traite"}
+            </p>
+          ) : (
+            <p className="text-xs mt-0.5 text-[#66667a]">
+              Connectez votre email d&apos;abord pour activer Sendia
+            </p>
+          )}
         </div>
-        <Toggle checked={isActive} onChange={handleToggle} disabled={toggling}
-          label={isActive ? "Actif" : "Inactif"} />
+        <Toggle checked={isActive} onChange={handleToggle}
+          disabled={toggling || !emailConnected} label={isActive ? "Actif" : "Inactif"} />
       </div>
 
       <form onSubmit={handleSave}>
-        <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-[#2a2a3a]">
-            <h2 className="text-base font-semibold text-[#f0f0f5]">Informations générales</h2>
-          </div>
-          <div className="px-6 py-5 flex flex-col gap-5">
-            <Input label="Votre nom" value={form.client_name}
-              onChange={e => setField("client_name", e.target.value)} placeholder="Jean Dupont" />
-            <Input label="Nom de l'entreprise" value={form.company_name}
-              onChange={e => setField("company_name", e.target.value)} placeholder="Acme SAS" />
-            <Input label="Numéro WhatsApp" value={form.whatsapp_number}
-              onChange={e => setField("whatsapp_number", e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="33664365030"
-              hint="Format international sans + ni espaces (ex: 33664365030)" />
-          </div>
-        </div>
+        {/* Section 3: General information */}
+        <CardSection title="Informations generales">
+          <Input label="Votre nom" value={form.client_name}
+            onChange={(e) => setField("client_name", e.target.value)} placeholder="Jean Dupont" />
+          <Input label="Nom de l'entreprise" value={form.company_name}
+            onChange={(e) => setField("company_name", e.target.value)} placeholder="Acme SAS" />
+          <Input label="Numero WhatsApp" value={form.whatsapp_number}
+            onChange={(e) => setField("whatsapp_number", e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="33664365030"
+            hint="Format international sans + ni espaces (ex: 33664365030)" />
+        </CardSection>
 
-        <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
-          <div className="px-6 py-4 border-b border-[#2a2a3a]">
-            <h2 className="text-base font-semibold text-[#f0f0f5]">Paramètres de réponse</h2>
-          </div>
-          <div className="px-6 py-5 flex flex-col gap-5">
-            <Select label="Ton par défaut" value={form.tone_preference}
-              onChange={e => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
-            <Textarea label="Signature" value={form.signature} rows={4}
-              onChange={e => setField("signature", e.target.value)}
-              placeholder={"Cordialement,\nJean Dupont"}
-              hint="Cette signature sera ajoutée à la fin de chaque réponse." />
-            <Textarea label="Contexte personnalisé" value={form.custom_prompt_context} rows={5}
-              onChange={e => setField("custom_prompt_context", e.target.value)}
-              placeholder="Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."
-              hint="Ces informations aident Sendia à mieux comprendre votre contexte métier." />
-          </div>
-        </div>
+        {/* Section 4: Response settings */}
+        <CardSection title="Parametres de reponse">
+          <Select label="Ton par defaut" value={form.tone_preference}
+            onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
+          <Textarea label="Signature" value={form.signature} rows={4}
+            onChange={(e) => setField("signature", e.target.value)}
+            placeholder={"Cordialement,\nJean Dupont"}
+            hint="Cette signature sera ajoutee a la fin de chaque reponse." />
+          <Textarea label="Contexte personnalise" value={form.custom_prompt_context} rows={5}
+            onChange={(e) => setField("custom_prompt_context", e.target.value)}
+            placeholder="Decrivez votre activite, vos preferences ou toute information utile pour Sendia..."
+            hint="Ces informations aident Sendia a mieux comprendre votre contexte metier." />
+        </CardSection>
 
         <div className="flex justify-end">
-          <Button type="submit" loading={saving} size="md">Enregistrer les modifications</Button>
+          <Button type="submit" loading={saving} size="md">
+            Enregistrer les modifications
+          </Button>
         </div>
       </form>
     </div>
