@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
@@ -226,14 +227,26 @@ async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
 
 // ─── Page component ────────────────────────────────────────────────────────────
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { profile, profileLoading, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
   const [emailLoading, setEmailLoading] = useState(true);
+
+  // Detect OAuth callback redirect (?connected=gmail or ?connected=outlook)
+  useEffect(() => {
+    const connected = searchParams.get("connected");
+    if (connected) {
+      toast(`${connected === "gmail" ? "Gmail" : "Outlook"} connecté avec succès !`, "success");
+      refreshProfile();
+      router.replace("/profile");
+    }
+  }, [searchParams, refreshProfile, router, toast]);
 
   // Single effect: populate form from profile + fetch email connection status
   useEffect(() => {
@@ -351,5 +364,13 @@ export default function ProfilePage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense>
+      <ProfileContent />
+    </Suspense>
   );
 }
