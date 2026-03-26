@@ -1,12 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
 import { Spinner } from "@/components/ui/Spinner";
+import { api } from "@/lib/api";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   useEffect(() => {
     if (loading) return;
@@ -20,8 +22,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           ? `/verify-email?email=${encodeURIComponent(user.email)}`
           : "/verify-email"
       );
+      return;
     }
-  }, [user, loading, router]);
+    // Check trial expiration — redirect to billing if expired (but not if already on billing)
+    if (pathname !== "/billing") {
+      api.getBillingStatus().then((s: any) => {
+        if (s?.plan_status === "expired" || s?.plan_status === "canceled") {
+          router.replace("/billing");
+        }
+      }).catch(() => {});
+    }
+  }, [user, loading, router, pathname]);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
