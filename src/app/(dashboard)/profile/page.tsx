@@ -286,7 +286,7 @@ function ProfileContent() {
     api
       .getOnboardingStatus()
       .then((s) => {
-        setGmailConnected(s.gmail_connected ?? s.email_connected);
+        setGmailConnected(s.gmail_connected === true);
         setOutlookConnected(s.outlook_connected ?? false);
       })
       .catch(() => {})
