@@ -6,6 +6,8 @@ import type {
   ProfileUpdateBody,
   BillingStatus,
   BillingPlan,
+  AdvancedStats,
+  CalendarEventsResponse,
 } from "./types";
 
 const API_BASE = "https://api.getsendia.com/api/client";
@@ -29,6 +31,17 @@ async function parseErrorMessage(res: Response, fallback: string): Promise<strin
     return fallback;
   }
 }
+async function assertResponseOk(res: Response): Promise<void> {
+  if (res.status === 401) {
+    await supabase.auth.signOut();
+    if (typeof window !== "undefined") window.location.href = "/login";
+    throw new ApiError(401, "Session expired");
+  }
+  if (!res.ok) {
+    const message = await parseErrorMessage(res, `Request failed with status ${res.status}`);
+    throw new ApiError(res.status, message);
+  }
+}
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await resolveToken();
   const res = await fetch(`${API_BASE}${path}`, {
@@ -39,19 +52,19 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
       ...(options.headers ?? {}),
     },
   });
-  if (res.status === 401) {
-    await supabase.auth.signOut();
-    if (typeof window !== "undefined") window.location.href = "/login";
-    throw new ApiError(401, "Session expired");
-  }
-  if (!res.ok) {
-    const message = await parseErrorMessage(res, `Request failed with status ${res.status}`);
-    throw new ApiError(res.status, message);
-  }
+  await assertResponseOk(res);
   return res.json() as Promise<T>;
 }
 function apiMutate<T>(method: "POST" | "PUT", path: string, body: unknown): Promise<T> {
   return apiFetch<T>(path, { method, body: JSON.stringify(body) });
+}
+async function apiFetchBlob(path: string): Promise<Blob> {
+  const token = await resolveToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  await assertResponseOk(res);
+  return res.blob();
 }
 export const api = {
   getProfile: () =>
@@ -87,4 +100,10 @@ export const api = {
     apiMutate<{ url: string }>("POST", "/billing/checkout", { plan }),
   openBillingPortal: () =>
     apiMutate<{ url: string }>("POST", "/billing/portal", {}),
+  getAdvancedStats: (period: string) =>
+    apiFetch<AdvancedStats>(`/stats/advanced?period=${period}`),
+  getCalendarEvents: () =>
+    apiFetch<CalendarEventsResponse>("/calendar/events"),
+  exportCSV: (period: string) =>
+    apiFetchBlob(`/emails/export?period=${period}`),
 };

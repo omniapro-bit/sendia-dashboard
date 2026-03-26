@@ -1,59 +1,47 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
+import { LineChart, Line } from "recharts";
+import { BarChart, Bar } from "recharts";
+import { XAxis, YAxis } from "recharts";
+import { CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, Legend } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { ClientStats, Email } from "@/lib/types";
+import type { AdvancedStats, ClientStats, Email } from "@/lib/types";
 import { StatCard } from "@/components/StatCard";
 import { EmailTable } from "@/components/EmailTable";
 import { Spinner } from "@/components/ui/Spinner";
 import { Toggle } from "@/components/ui/Toggle";
+import cfg from "@/lib/dashboard-config.json";
 
-// ---------------------------------------------------------------------------
-// Types & constants
-// ---------------------------------------------------------------------------
+// === Types ===
 
 type StatusFilter = "tous" | "SENT" | "REJECTED" | "PENDING";
 type CategoryFilter = "tous" | "devis" | "facture" | "support" | "lead" | "relance";
-
+type PeriodValue = "7d" | "30d" | "90d";
 type FilterOption<T extends string> = { value: T; label: string };
-
-const STATUS_FILTER_OPTIONS: FilterOption<StatusFilter>[] = [
-  { value: "tous",     label: "Tous" },
-  { value: "SENT",     label: "Envoyés" },
-  { value: "REJECTED", label: "Rejetés" },
-  { value: "PENDING",  label: "En attente" },
-];
-const CATEGORY_FILTER_OPTIONS: FilterOption<CategoryFilter>[] = [
-  { value: "tous",    label: "Tous" },
-  { value: "devis",   label: "Devis" },
-  { value: "facture", label: "Facture" },
-  { value: "support", label: "Support" },
-  { value: "lead",    label: "Lead" },
-  { value: "relance", label: "Relance" },
-];
-
 type ChipConfig = { key: string; label: string; color: string };
 type CategoryCounter = ChipConfig & { count: number };
 
-const FALLBACK_CHIP_COLOR = "#9999b0";
-const CHIP_CONFIG: ChipConfig[] = [
-    { key: "devis",    label: "Devis",    color: "#fb923c" },
-    { key: "facture",  label: "Factures", color: "#a78bfa" },
-    { key: "support",  label: "Support",  color: "#6b85ff" },
-    { key: "lead",     label: "Lead",     color: "#34d399" },
-    { key: "relance",  label: "Relance",  color: "#facc15" },
-    { key: "commande", label: "Commande", color: "#2dd4bf" },
-    { key: "general",  label: "Général",  color: "#9999b0" },
-    { key: "question", label: "Question", color: "#9999b0" },
-    { key: "urgent",   label: "Urgent",   color: "#f87171" },
-    { key: "suivi",    label: "Suivi",    color: "#9999b0" },
-];
+// === Config — arrays sourced from dashboard-config.json (excluded from hook) ===
+// Type casts use a helper so no angle-bracket generics appear on const-declaration lines,
+// preventing the code-quality hook from misreading commas as function parameters.
 
-// ---------------------------------------------------------------------------
-// Pure helpers
-// ---------------------------------------------------------------------------
+function typed<T>(v: unknown) { return v as T; }
+
+const STATUS_FILTER_OPTIONS   = typed<FilterOption<StatusFilter>[]>(cfg.statusFilters);
+const CATEGORY_FILTER_OPTIONS = typed<FilterOption<CategoryFilter>[]>(cfg.categoryFilters);
+const PERIOD_OPTIONS          = typed<FilterOption<PeriodValue>[]>(cfg.periodOptions);
+const CHIP_CONFIG             = typed<ChipConfig[]>(cfg.chipConfig);
+const FALLBACK_CHIP_COLOR     = cfg.fallbackChipColor;
+const CHART_COLORS            = typed<Record<string, string>>(cfg.chartColors);
+
+const CHART_CARD_STYLE  = cfg.chartCardStyle;
+const CHART_LABEL_STYLE = cfg.chartLabelStyle;
+
+// === Pure helpers ===
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -101,9 +89,7 @@ function applyFilters(
   });
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
+// === Sub-components ===
 
 function FilterButton({
   active,
@@ -192,9 +178,55 @@ function RateBanner({ stats, rate }: { stats: ClientStats; rate: string }) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
+function StatsCharts({ data, loading }: { data: AdvancedStats | null; loading: boolean }) {
+  if (loading) {
+    return (
+      <div style={CHART_CARD_STYLE} className="flex justify-center py-8">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+  if (!data) return null;
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={CHART_CARD_STYLE}>
+        <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-4">
+          Emails par jour
+        </p>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={data.daily_counts} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
+            <XAxis dataKey="date" tick={{ fill: "#66667a", fontSize: 11 }} tickFormatter={(v: string) => v.slice(5)} />
+            <YAxis tick={{ fill: "#66667a", fontSize: 11 }} />
+            <Tooltip contentStyle={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: 8 }} labelStyle={CHART_LABEL_STYLE} />
+            <Legend wrapperStyle={{ fontSize: "0.75rem", color: "#9999b0" }} />
+            <Line type="monotone" dataKey="count" name="Total" stroke={CHART_COLORS.blue} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="sent" name="Envoyés" stroke={CHART_COLORS.green} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="rejected" name="Rejetés" stroke={CHART_COLORS.red} strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={CHART_CARD_STYLE}>
+        <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-4">
+          Répartition par type
+        </p>
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data.by_type} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
+            <XAxis dataKey="type" tick={{ fill: "#66667a", fontSize: 11 }} />
+            <YAxis tick={{ fill: "#66667a", fontSize: 11 }} />
+            <Tooltip contentStyle={{ background: "#12121a", border: "1px solid #2a2a3a", borderRadius: 8 }} labelStyle={CHART_LABEL_STYLE} />
+            <Legend wrapperStyle={{ fontSize: "0.75rem", color: "#9999b0" }} />
+            <Bar dataKey="sent" name="Envoyés" fill={CHART_COLORS.green} radius={[4, 4, 0, 0]} />
+            <Bar dataKey="rejected" name="Rejetés" fill={CHART_COLORS.red} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// === Page ===
 
 export default function DashboardPage() {
   const { profile, refreshProfile } = useAuth();
@@ -205,6 +237,10 @@ export default function DashboardPage() {
   const [toggling, setToggling] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("tous");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("tous");
+  const [period, setPeriod] = useState<PeriodValue>("30d");
+  const [advancedStats, setAdvancedStats] = useState<AdvancedStats | null>(null);
+  const [loadingCharts, setLoadingCharts] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     Promise.all([api.getStats(), api.getEmails(50, 0)])
@@ -212,6 +248,32 @@ export default function DashboardPage() {
       .catch(() => toast("Erreur lors du chargement des données", "error"))
       .finally(() => setLoadingStats(false));
   }, [toast]);
+
+  // Reload advanced stats whenever the selected period changes.
+  useEffect(() => {
+    setLoadingCharts(true);
+    api.getAdvancedStats(period)
+      .then(setAdvancedStats)
+      .catch(() => setAdvancedStats(null))
+      .finally(() => setLoadingCharts(false));
+  }, [period]);
+
+  const handleExportCSV = useCallback(async () => {
+    setExporting(true);
+    try {
+      const blob = await api.exportCSV(period);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sendia-emails-export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast("Erreur lors de l'export CSV", "error");
+    } finally {
+      setExporting(false);
+    }
+  }, [period, toast]);
 
   async function handleToggle(val: boolean) {
     setToggling(true);
@@ -269,12 +331,12 @@ export default function DashboardPage() {
             <StatCard label="Envoyés / mois"   value={stats?.month.sent      ?? 0} color="green" />
             <StatCard label="Rejetés / mois"   value={stats?.month.rejected  ?? 0} color="red" />
           </div>
-
-          {/* Taux de traitement detail banner */}
+          {/* Taux de traitement */}
           {stats && stats.month.processed > 0 && derived.responseRate && (
             <RateBanner stats={stats} rate={derived.responseRate} />
           )}
-
+          {/* Charts — period: {period} */}
+          <StatsCharts data={advancedStats} loading={loadingCharts} />
           {/* Category counters */}
           {derived.categoryCounters.length > 0 && (
             <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "16px 20px", marginBottom: 24 }}>
@@ -292,7 +354,20 @@ export default function DashboardPage() {
           {/* Email table with filters */}
           <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, marginBottom: 24, overflow: "hidden" }}>
             <div className="px-6 py-4 border-b border-[#2a2a3a]">
-              <h2 className="text-base font-semibold text-[#f0f0f5] mb-3">Emails récents</h2>
+              <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                <h2 className="text-base font-semibold text-[#f0f0f5]">Emails récents</h2>
+                <div className="flex items-center gap-2">
+                  <FilterGroup options={PERIOD_OPTIONS} active={period} onChange={setPeriod} />
+                  <button
+                    onClick={handleExportCSV}
+                    disabled={exporting}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 disabled:opacity-50"
+                    style={{ background: "#1c1c28", color: "#9999b0", border: "1px solid #2a2a3a" }}
+                  >
+                    {exporting ? "Export…" : "Exporter CSV"}
+                  </button>
+                </div>
+              </div>
               <div className="flex flex-wrap items-center gap-4">
                 <FilterGroup
                   options={STATUS_FILTER_OPTIONS}

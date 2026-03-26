@@ -17,6 +17,11 @@ export interface ClientProfile {
   feature_rag_enabled: boolean;
   whatsapp_number?: string;
   email_provider?: string;
+  prompt_devis?: string;
+  prompt_lead?: string;
+  prompt_support?: string;
+  prompt_relance?: string;
+  prompt_autre?: string;
 }
 
 export type StatPeriod = { processed: number; sent: number; rejected: number };
@@ -47,6 +52,26 @@ export type ProfileUpdateBody = {
   custom_prompt_context?: string;
   greeting_style?: string;
   is_active?: boolean;
+  prompt_devis?: string;
+  prompt_lead?: string;
+  prompt_support?: string;
+  prompt_relance?: string;
+  prompt_autre?: string;
+};
+
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  date_start: string;
+  date_end: string;
+  location?: string;
+  source_email_subject?: string;
+  status: "pending" | "confirmed" | "expired";
+  created_at: string;
+};
+
+export type CalendarEventsResponse = {
+  events: CalendarEvent[];
 };
 
 export type RagDocument = {
@@ -70,4 +95,26 @@ export type BillingPlan = {
   name: string;
   price: number;
   features: string[];
+};
+
+export type DailyCount = {
+  date: string;
+  count: number;
+  sent: number;
+  rejected: number;
+};
+
+export type TypeCount = {
+  type: string;
+  count: number;
+  sent: number;
+  rejected: number;
+};
+
+export type AdvancedStats = {
+  daily_counts: DailyCount[];
+  by_type: TypeCount[];
+  response_rate: number;
+  avg_daily: number;
+  trend: "up" | "down" | "stable";
 };

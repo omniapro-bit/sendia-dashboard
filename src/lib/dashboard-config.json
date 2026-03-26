@@ -1,0 +1,52 @@
+{
+  "statusFilters": [
+    { "value": "tous",     "label": "Tous" },
+    { "value": "SENT",     "label": "Envoyés" },
+    { "value": "REJECTED", "label": "Rejetés" },
+    { "value": "PENDING",  "label": "En attente" }
+  ],
+  "categoryFilters": [
+    { "value": "tous",    "label": "Tous" },
+    { "value": "devis",   "label": "Devis" },
+    { "value": "facture", "label": "Facture" },
+    { "value": "support", "label": "Support" },
+    { "value": "lead",    "label": "Lead" },
+    { "value": "relance", "label": "Relance" }
+  ],
+  "fallbackChipColor": "#9999b0",
+  "chipConfig": [
+    { "key": "devis",    "label": "Devis",    "color": "#fb923c" },
+    { "key": "facture",  "label": "Factures", "color": "#a78bfa" },
+    { "key": "support",  "label": "Support",  "color": "#6b85ff" },
+    { "key": "lead",     "label": "Lead",     "color": "#34d399" },
+    { "key": "relance",  "label": "Relance",  "color": "#facc15" },
+    { "key": "commande", "label": "Commande", "color": "#2dd4bf" },
+    { "key": "general",  "label": "Général",  "color": "#9999b0" },
+    { "key": "question", "label": "Question", "color": "#9999b0" },
+    { "key": "urgent",   "label": "Urgent",   "color": "#f87171" },
+    { "key": "suivi",    "label": "Suivi",    "color": "#9999b0" }
+  ],
+  "periodOptions": [
+    { "value": "7d",  "label": "7j" },
+    { "value": "30d", "label": "30j" },
+    { "value": "90d", "label": "90j" }
+  ],
+  "chartColors": {
+    "blue":   "#4f6ef7",
+    "green":  "#22c55e",
+    "amber":  "#f59e0b",
+    "red":    "#ef4444",
+    "purple": "#8b5cf6"
+  },
+  "chartCardStyle": {
+    "background": "#16161f",
+    "border": "1px solid #2a2a3a",
+    "borderRadius": 16,
+    "padding": "20px 24px",
+    "marginBottom": 24
+  },
+  "chartLabelStyle": {
+    "fontSize": "0.75rem",
+    "color": "#66667a"
+  }
+}
