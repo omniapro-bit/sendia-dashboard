@@ -32,16 +32,10 @@ async function parseErrorMessage(res: Response, fallback: string): Promise<strin
     return fallback;
   }
 }
-async function assertResponseOk(res: Response): Promise<void> {
-  if (res.status === 401) {
-    await supabase.auth.signOut();
-    if (typeof window !== "undefined") window.location.href = "/login";
-    throw new ApiError(401, "Session expired");
-  }
-  if (!res.ok) {
-    const message = await parseErrorMessage(res, `Request failed with status ${res.status}`);
-    throw new ApiError(res.status, message);
-  }
+async function signOutAndRedirect(): Promise<never> {
+  await supabase.auth.signOut();
+  if (typeof window !== "undefined") window.location.href = "/login";
+  throw new ApiError(401, "Session expired");
 }
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await resolveToken();
@@ -53,7 +47,28 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
       ...(options.headers ?? {}),
     },
   });
-  await assertResponseOk(res);
+  if (res.status === 401) {
+    // Try refreshing the session before giving up
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshData?.session && !refreshError) {
+      // Retry with the new token
+      const retryRes = await fetch(`${API_BASE}${path}`, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${refreshData.session.access_token}`,
+          ...(options.headers ?? {}),
+        },
+      });
+      if (retryRes.ok) return retryRes.json() as Promise<T>;
+    }
+    // Refresh failed or retry still 401 — sign out
+    return signOutAndRedirect();
+  }
+  if (!res.ok) {
+    const message = await parseErrorMessage(res, `Request failed with status ${res.status}`);
+    throw new ApiError(res.status, message);
+  }
   return res.json() as Promise<T>;
 }
 function apiMutate<T>(method: "POST" | "PUT", path: string, body: unknown): Promise<T> {
@@ -64,7 +79,10 @@ async function apiFetchBlob(path: string): Promise<Blob> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  await assertResponseOk(res);
+  if (!res.ok) {
+    const message = await parseErrorMessage(res, `Export failed with status ${res.status}`);
+    throw new ApiError(res.status, message);
+  }
   return res.blob();
 }
 export const api = {

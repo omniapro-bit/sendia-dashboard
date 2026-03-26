@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { supabase } from "@/lib/supabase";
@@ -70,6 +71,26 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Paramètres</h1>
         <p className="text-[#9999b0] mt-1">Gérez votre compte et votre sécurité.</p>
       </div>
+
+      {/* Abonnement */}
+      <Link
+        href="/billing"
+        className="no-underline block bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6 hover:border-[#4f6ef7]/50 transition-colors group"
+      >
+        <div className="px-6 py-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#66667a] mb-1">Compte</p>
+            <p className="text-base font-semibold text-[#f0f0f5]">Abonnement</p>
+            <p className="text-xs text-[#9999b0] mt-0.5">Gérez votre plan et votre facturation</p>
+          </div>
+          <svg
+            className="w-5 h-5 text-[#66667a] group-hover:text-[#4f6ef7] transition-colors shrink-0"
+            fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </Link>
 
       <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
         <div className="px-6 py-4 border-b border-[#2a2a3a]">

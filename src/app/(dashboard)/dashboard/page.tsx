@@ -9,11 +9,10 @@ import { ResponsiveContainer, Legend } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { AdvancedStats, ClientStats, Email } from "@/lib/types";
+import type { AdvancedStats, ClientStats, Email, ClientProfile } from "@/lib/types";
 import { StatCard } from "@/components/StatCard";
 import { EmailTable } from "@/components/EmailTable";
 import { Spinner } from "@/components/ui/Spinner";
-import { Toggle } from "@/components/ui/Toggle";
 import cfg from "@/lib/dashboard-config.json";
 
 // === Types ===
@@ -87,6 +86,269 @@ function applyFilters(
     const catOk = categoryFilter === "tous" || e.category === categoryFilter;
     return statusOk && catOk;
   });
+}
+
+// === Onboarding Wizard ===
+
+type OnboardingStep = {
+  label: string;
+  done: boolean;
+  href: string;
+  description: string;
+  skippable?: boolean;
+};
+
+function buildOnboardingSteps(profile: ClientProfile): OnboardingStep[] {
+  return [
+    {
+      label: "Complétez votre profil",
+      done: Boolean(profile.client_name && profile.company_name && profile.whatsapp_number),
+      href: "/profile",
+      description: "Nom, entreprise et numéro WhatsApp",
+    },
+    {
+      label: "Connectez votre boîte email",
+      done: Boolean(profile.email_provider),
+      href: "/profile",
+      description: "Gmail ou Outlook",
+    },
+    {
+      label: "Ajoutez vos documents",
+      done: false,
+      href: "/documents",
+      description: "Facultatif — enrichit les réponses de Sendia",
+      skippable: true,
+    },
+  ];
+}
+
+function OnboardingWizard({ profile }: { profile: ClientProfile }) {
+  const steps = buildOnboardingSteps(profile);
+  const requiredSteps = steps.filter(s => !s.skippable);
+  const completedRequired = requiredSteps.filter(s => s.done).length;
+  const allRequiredDone = completedRequired === requiredSteps.length;
+  const progressPct = Math.round((completedRequired / requiredSteps.length) * 100);
+
+  // Find the first incomplete required step as the current active step
+  const currentStepIndex = steps.findIndex(s => !s.done && !s.skippable);
+
+  if (allRequiredDone) {
+    return (
+      <div
+        className="mb-8"
+        style={{
+          background: "linear-gradient(135deg, rgba(34,197,94,0.06), #12121a 60%)",
+          border: "1px solid rgba(34,197,94,0.25)",
+          borderRadius: 20,
+          padding: "24px 28px",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              background: "rgba(34,197,94,0.15)",
+              border: "1px solid rgba(34,197,94,0.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#f0f0f5]">Sendia est configuré !</p>
+            <p className="text-xs text-[#9999b0] mt-0.5">Votre assistant traite vos emails.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="mb-8"
+      style={{
+        background: "#16161f",
+        border: "1px solid #2a2a3a",
+        borderRadius: 20,
+        overflow: "hidden",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(79,110,247,0.08), #12121a 60%)",
+          borderBottom: "1px solid #2a2a3a",
+          padding: "20px 24px",
+        }}
+      >
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-sm font-bold text-[#f0f0f5]">Configuration de Sendia</p>
+            <p className="text-xs text-[#9999b0] mt-0.5">
+              {completedRequired} sur {requiredSteps.length} étapes obligatoires complétées
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              style={{
+                width: 100,
+                height: 6,
+                background: "#1c1c28",
+                borderRadius: 3,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${progressPct}%`,
+                  height: "100%",
+                  background: "linear-gradient(90deg, #4f6ef7, #6b85ff)",
+                  borderRadius: 3,
+                  transition: "width 0.5s ease",
+                }}
+              />
+            </div>
+            <span className="text-xs font-semibold text-[#4f6ef7]">{progressPct}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Steps */}
+      <div className="p-4 flex flex-col gap-3">
+        {steps.map((step, idx) => {
+          const isActive = idx === currentStepIndex;
+          const isDone = step.done;
+          return (
+            <div
+              key={step.label}
+              style={{
+                background: isActive ? "rgba(79,110,247,0.06)" : isDone ? "rgba(34,197,94,0.04)" : "#12121a",
+                border: isActive
+                  ? "1px solid rgba(79,110,247,0.35)"
+                  : isDone
+                  ? "1px solid rgba(34,197,94,0.2)"
+                  : "1px solid #2a2a3a",
+                borderRadius: 14,
+                padding: "14px 18px",
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                transition: "all 0.2s",
+              }}
+            >
+              {/* Step number / checkmark */}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: isDone
+                    ? "rgba(34,197,94,0.15)"
+                    : isActive
+                    ? "rgba(79,110,247,0.15)"
+                    : "#1c1c28",
+                  border: isDone
+                    ? "1px solid rgba(34,197,94,0.4)"
+                    : isActive
+                    ? "1px solid rgba(79,110,247,0.4)"
+                    : "1px solid #2a2a3a",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                {isDone ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17l-5-5" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: "0.7rem",
+                      fontWeight: 700,
+                      color: isActive ? "#4f6ef7" : "#66667a",
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                )}
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      color: isDone ? "#9999b0" : "#f0f0f5",
+                      textDecoration: isDone ? "line-through" : "none",
+                    }}
+                  >
+                    {step.label}
+                  </p>
+                  {step.skippable && (
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        fontWeight: 600,
+                        color: "#66667a",
+                        background: "#1c1c28",
+                        border: "1px solid #2a2a3a",
+                        borderRadius: 6,
+                        padding: "1px 6px",
+                      }}
+                    >
+                      Facultatif
+                    </span>
+                  )}
+                </div>
+                <p
+                  style={{
+                    fontSize: "0.75rem",
+                    color: isDone ? "#66667a" : "#9999b0",
+                    marginTop: 2,
+                  }}
+                >
+                  {step.description}
+                </p>
+              </div>
+
+              {/* Action button */}
+              {!isDone && (
+                <Link
+                  href={step.href}
+                  style={{
+                    flexShrink: 0,
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    padding: "6px 14px",
+                    borderRadius: 8,
+                    background: isActive ? "#4f6ef7" : "#1c1c28",
+                    color: isActive ? "#fff" : "#9999b0",
+                    border: isActive ? "none" : "1px solid #2a2a3a",
+                    textDecoration: "none",
+                    transition: "all 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {isActive ? "Configurer" : "Configurer"}
+                </Link>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 // === Sub-components ===
@@ -187,6 +449,53 @@ function StatsCharts({ data, loading }: { data: AdvancedStats | null; loading: b
     );
   }
   if (!data) return null;
+
+  const hasData =
+    data.daily_counts.length > 0 &&
+    data.daily_counts.some(d => d.count > 0 || d.sent > 0 || d.rejected > 0);
+
+  if (!hasData) {
+    return (
+      <div
+        style={{
+          ...CHART_CARD_STYLE,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "40px 24px",
+          marginBottom: 24,
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            background: "#1c1c28",
+            border: "1px solid #2a2a3a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 16,
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M3 3v18h18" stroke="#66667a" strokeWidth="2" strokeLinecap="round" />
+            <path d="M7 16l4-4 4 4 4-7" stroke="#66667a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <p style={{ fontSize: "0.875rem", fontWeight: 600, color: "#9999b0", marginBottom: 6 }}>
+          Pas encore de données
+        </p>
+        <p style={{ fontSize: "0.75rem", color: "#66667a", maxWidth: 320 }}>
+          Les graphiques apparaîtront après le traitement de vos premiers emails.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={CHART_CARD_STYLE}>
@@ -229,12 +538,11 @@ function StatsCharts({ data, loading }: { data: AdvancedStats | null; loading: b
 // === Page ===
 
 export default function DashboardPage() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile } = useAuth();
   const { toast } = useToast();
   const [stats, setStats] = useState<ClientStats | null>(null);
   const [emails, setEmails] = useState<Email[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [toggling, setToggling] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("tous");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("tous");
   const [period, setPeriod] = useState<PeriodValue>("30d");
@@ -275,54 +583,36 @@ export default function DashboardPage() {
     }
   }, [period, toast]);
 
-  async function handleToggle(val: boolean) {
-    setToggling(true);
-    try {
-      await api.toggleActive(val);
-      await refreshProfile();
-      toast(val ? "Sendia activé !" : "Sendia désactivé.", "success");
-    } catch {
-      toast("Erreur lors du changement de statut", "error");
-    } finally {
-      setToggling(false);
-    }
-  }
   const derived = useMemo(() => ({
     categoryCounters: buildCategoryCounters(emails),
     filteredEmails: applyFilters(emails, statusFilter, categoryFilter),
     responseRate: stats ? computeResponseRate(stats) : null,
   }), [emails, statusFilter, categoryFilter, stats]);
+
+  // Determine if onboarding is complete (all required steps done)
+  const onboardingComplete = useMemo(() => {
+    if (!profile) return false;
+    const steps = buildOnboardingSteps(profile);
+    return steps.filter(s => !s.skippable).every(s => s.done);
+  }, [profile]);
+
   const name = profile?.client_name ?? "vous";
+
   return (
     <div className="px-6 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-[#f0f0f5]">{greeting()}, {name} 👋</h1>
+        <h1 className="text-2xl font-bold text-[#f0f0f5]">{greeting()}, {name}</h1>
         <p className="text-[#9999b0] mt-1">Voici un aperçu de votre activité.</p>
       </div>
 
-      {/* Sendia status toggle */}
-      <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <p className="text-sm font-semibold text-[#f0f0f5]">Statut Sendia</p>
-          <p className={`text-xs mt-0.5 ${profile?.is_active ? "text-emerald-400" : "text-[#66667a]"}`}>
-            {profile?.is_active
-              ? "Actif — votre assistant traite vos emails"
-              : "Inactif — aucun email ne sera traité"}
-          </p>
-        </div>
-        <Toggle
-          checked={profile?.is_active ?? false}
-          onChange={handleToggle}
-          disabled={toggling}
-          label={profile?.is_active ? "Actif" : "Inactif"}
-        />
-      </div>
+      {/* Onboarding wizard — shown when profile is loaded and setup is incomplete */}
+      {profile && <OnboardingWizard profile={profile} />}
 
       {loadingStats ? (
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
-        <>
+        <div style={{ opacity: onboardingComplete ? 1 : 0.4, pointerEvents: onboardingComplete ? "auto" : "none", transition: "opacity 0.3s" }}>
           {/* Stat cards */}
           <div className="grid grid-cols-3 gap-4 mb-4">
             <StatCard label="Aujourd'hui"      value={stats?.today.processed ?? 0} color="blue" />
@@ -411,7 +701,7 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
