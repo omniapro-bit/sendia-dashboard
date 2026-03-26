@@ -22,12 +22,12 @@ const CARD_STYLE    = typed<React.CSSProperties>(cfg.cardStyle);
 
 // === Pure helpers ===
 
-function getActionMeta(action: string | null, status: string): ActionMeta {
-  const key = (action ?? status ?? "").toLowerCase();
+function getActionMeta(status: string): ActionMeta {
+  const key = (status ?? "").toLowerCase();
   return ACTION_META[key] ?? ACTION_META["pending"];
 }
 
-function getTypeBadge(emailType: string | null): TypeBadge {
+function getTypeBadge(emailType: string | null | undefined): TypeBadge {
   if (!emailType) return FALLBACK_BADGE;
   return TYPE_BADGES[emailType.toLowerCase()] ?? { ...FALLBACK_BADGE, label: emailType };
 }
@@ -98,8 +98,8 @@ function DraftSection({ draft }: { draft: string }) {
 }
 
 function ActivityCard({ item }: { item: Activity }) {
-  const meta  = getActionMeta(item.action, item.status);
-  const badge = getTypeBadge(item.email_type);
+  const meta  = getActionMeta(item.status);
+  const badge = getTypeBadge(item.type ?? item.email_type ?? null);
   const draft = item.draft_response ?? item.ai_response ?? null;
   return (
     <div className="rounded-2xl p-5" style={CARD_STYLE}>

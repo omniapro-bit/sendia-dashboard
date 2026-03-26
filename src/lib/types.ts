@@ -116,7 +116,10 @@ export type Activity = {
   from_name: string;
   from_email: string;
   subject: string;
-  email_type: string | null;
+  /** Backend field for the category/type badge (devis, lead, support…) */
+  type?: string | null;
+  /** Legacy alias — kept for backwards compat */
+  email_type?: string | null;
   action: string | null;
   status: string;
   created_at: string;

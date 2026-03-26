@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
@@ -73,16 +73,6 @@ function ProviderIcon({ id, size = 20 }: { id: ProviderId; size?: number }) {
   );
 }
 
-function CheckCircleIcon() {
-  return (
-    <div className="w-8 h-8 rounded-full bg-[#34d399]/15 flex items-center justify-center shrink-0">
-      <svg className="w-4 h-4 text-[#34d399]" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-      </svg>
-    </div>
-  );
-}
-
 // Reusable card with titled header + body
 function CardSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -107,17 +97,55 @@ function ProviderLink(props: { href: string; id: ProviderId; label: string; icon
 
 // ─── Email connection section ──────────────────────────────────────────────────
 
-function ConnectedProviderRow({ label, email }: { label: string; email?: string }) {
+function ProviderInfo({ label, email }: { label: string; email?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <CheckCircleIcon />
-      <div>
-        <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
-          {label} connecté
-          <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
-        </p>
-        {email && <p className="text-xs text-[#9999b0] mt-0.5">{email}</p>}
+    <div>
+      <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
+        {label} connecté
+        <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
+      </p>
+      {email && <p className="text-xs text-[#9999b0] mt-0.5">{email}</p>}
+    </div>
+  );
+}
+
+function ProviderRow({
+  id, connected, email, href,
+}: {
+  id: ProviderId;
+  connected: boolean;
+  email?: string;
+  href: string;
+}) {
+  const label = id === "gmail" ? "Gmail" : "Outlook";
+  if (connected) {
+    return (
+      <div className="flex items-center justify-between gap-3 py-3 px-4 rounded-xl bg-[#1a1a2a] border border-green-500/20">
+        <div className="flex items-center gap-3">
+          <ProviderIcon id={id} size={18} />
+          <ProviderInfo label={label} email={email} />
+        </div>
+        <a
+          href={href}
+          className="text-xs text-[#66667a] hover:text-[#9999b0] border border-[#2a2a3a] rounded-lg px-2.5 py-1 transition-colors no-underline"
+        >
+          Reconnecter
+        </a>
       </div>
+    );
+  }
+  return (
+    <div className="flex items-center justify-between gap-3 py-3 px-4 rounded-xl bg-[#1a1a2a] border border-[#2a2a3a]">
+      <div className="flex items-center gap-3">
+        <ProviderIcon id={id} size={18} />
+        <p className="text-sm text-[#9999b0]">{label} — non connecté</p>
+      </div>
+      <a
+        href={href}
+        className="text-xs font-semibold text-[#4f6ef7] hover:text-[#6b85ff] border border-[#4f6ef7]/40 hover:border-[#6b85ff] rounded-lg px-2.5 py-1 transition-colors no-underline"
+      >
+        Connecter
+      </a>
     </div>
   );
 }
@@ -131,72 +159,44 @@ function EmailConnectionSection(props: {
 }) {
   const { gmailConnected, outlookConnected, emailLoading, clientEmail, hrefs } = props;
   const anyConnected = gmailConnected || outlookConnected;
-  const bothConnected = gmailConnected && outlookConnected;
-
-  const compactCls = (active: boolean) =>
-    `px-4 py-2.5 rounded-xl text-sm font-medium ${active
-      ? "bg-white/10 text-[#f0f0f5] border border-green-500/30"
-      : "bg-[#1a1a2a] text-[#9999b0] border border-[#2a2a3a] hover:border-[#4f6ef7]"}`;
-
   const borderCls = emailLoading || !anyConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
 
-  const body = emailLoading ? (
-    <div className="flex justify-center py-4"><Spinner size="md" /></div>
-  ) : bothConnected ? (
-    <>
-      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecté</h2>
-      <div className="flex flex-col gap-3 mb-4">
-        <ConnectedProviderRow label="Gmail" email={clientEmail} />
-        <ConnectedProviderRow label="Outlook" />
-      </div>
-      <div className="pt-4 border-t border-[#2a2a3a]">
-        <p className="text-xs text-[#66667a] mb-3">Reconnecter un fournisseur :</p>
-        <div className="flex gap-3 flex-wrap">
-          <ProviderLink href={hrefs.gmail} id="gmail" iconSize={16}
-            label="Gmail (actif)" className={compactCls(true)} />
-          <ProviderLink href={hrefs.outlook} id="outlook" iconSize={16}
-            label="Outlook (actif)" className={compactCls(true)} />
-        </div>
-      </div>
-    </>
-  ) : anyConnected ? (
-    <>
-      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecté</h2>
-      <div className="mb-4">
-        <ConnectedProviderRow label={gmailConnected ? "Gmail" : "Outlook"} email={clientEmail} />
-      </div>
-      <div className="pt-4 border-t border-[#2a2a3a]">
-        <p className="text-xs text-[#66667a] mb-3">
-          {gmailConnected ? "Connecter Outlook également :" : "Connecter Gmail également :"}
-        </p>
-        <div className="flex gap-3 flex-wrap">
-          <ProviderLink href={hrefs.gmail} id="gmail" iconSize={16}
-            label={gmailConnected ? "Gmail (actif)" : "Connecter Gmail"} className={compactCls(gmailConnected)} />
-          <ProviderLink href={hrefs.outlook} id="outlook" iconSize={16}
-            label={outlookConnected ? "Outlook (actif)" : "Connecter Outlook"} className={compactCls(outlookConnected)} />
-        </div>
-      </div>
-    </>
-  ) : (
-    <>
-      <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">Connectez votre boîte email</h2>
-      <p className="text-sm text-[#9999b0] mb-5">
-        Sendia analyse vos emails et vous propose des réponses intelligentes via WhatsApp.
-      </p>
-      <div className="flex gap-3 flex-wrap mb-5">
-        <ProviderLink href={hrefs.gmail} id="gmail" iconSize={18} label="Connecter Gmail"
-          className="px-6 py-3 rounded-xl bg-white text-gray-800 font-medium text-sm hover:-translate-y-0.5 hover:shadow-lg" />
-        <ProviderLink href={hrefs.outlook} id="outlook" iconSize={18} label="Connecter Outlook"
-          className="px-6 py-3 rounded-xl bg-transparent border border-[#2a2a3a] text-[#f0f0f5] font-medium text-sm hover:border-[#4f6ef7] hover:-translate-y-0.5" />
-      </div>
-      <p className="text-xs text-[#66667a]">
-        Vos données restent privées — aucun contenu d&apos;email n&apos;est stocké.
-      </p>
-    </>
-  );
-
   return (
-    <div className={`bg-[#12121a] border ${borderCls} rounded-2xl p-6 mb-6`}>{body}</div>
+    <div className={`bg-[#12121a] border ${borderCls} rounded-2xl p-6 mb-6`}>
+      {emailLoading ? (
+        <div className="flex justify-center py-4"><Spinner size="md" /></div>
+      ) : (
+        <>
+          <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">
+            {anyConnected ? "Email connecté" : "Connectez votre boîte email"}
+          </h2>
+          {!anyConnected && (
+            <p className="text-sm text-[#9999b0] mb-4">
+              Sendia analyse vos emails et vous propose des réponses intelligentes via WhatsApp.
+            </p>
+          )}
+          <div className="flex flex-col gap-2 mt-3">
+            <ProviderRow
+              id="gmail"
+              connected={gmailConnected}
+              email={gmailConnected ? clientEmail : undefined}
+              href={hrefs.gmail}
+            />
+            <ProviderRow
+              id="outlook"
+              connected={outlookConnected}
+              email={outlookConnected ? clientEmail : undefined}
+              href={hrefs.outlook}
+            />
+          </div>
+          {!anyConnected && (
+            <p className="text-xs text-[#66667a] mt-4">
+              Vos données restent privées — aucun contenu d&apos;email n&apos;est stocké.
+            </p>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
@@ -258,7 +258,6 @@ async function withLoading(set: (v: boolean) => void, fn: () => Promise<void>) {
 function ProfileContent() {
   const { profile, profileLoading, refreshProfile } = useAuth();
   const { toast } = useToast();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
