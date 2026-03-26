@@ -11,7 +11,9 @@ import type {
   ActivityResponse,
 } from "./types";
 
-const API_BASE = "https://api.getsendia.com/api/client";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+  ? `${process.env.NEXT_PUBLIC_API_BASE}/api/client`
+  : "https://api.getsendia.com/api/client";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {

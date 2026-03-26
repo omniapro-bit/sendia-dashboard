@@ -37,7 +37,7 @@ function relativeTime(iso: string): string {
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
-  if (mins < 1)   return "a l'instant";
+  if (mins < 1)   return "à l'instant";
   if (mins < 60)  return `il y a ${mins}min`;
   if (hours < 24) return `il y a ${hours}h`;
   if (days === 1) return "hier";
@@ -83,7 +83,7 @@ function DraftSection({ draft }: { draft: string }) {
           style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>
           <path d="M9 18l6-6-6-6" />
         </svg>
-        {open ? "Masquer la reponse" : "Voir la reponse generee"}
+        {open ? "Masquer la réponse" : "Voir la réponse générée"}
       </button>
       {open && (
         <p
@@ -137,9 +137,9 @@ function EmptyState() {
         strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p className="text-sm font-semibold" style={{ color: "#66667a" }}>Aucune activite pour le moment</p>
+      <p className="text-sm font-semibold" style={{ color: "#66667a" }}>Aucune activité pour le moment</p>
       <p className="text-xs" style={{ color: "#44445a" }}>
-        Les emails traites par Sendia apparaitront ici.
+        Les emails traités par Sendia apparaîtront ici.
       </p>
     </div>
   );
@@ -155,7 +155,7 @@ export default function ActivityPage() {
     setLoading(true);
     api.getActivity()
       .then(res => setActivities(res.activities))
-      .catch(() => toast("Erreur lors du chargement de l'activite", "error"))
+      .catch(() => toast("Erreur lors du chargement de l'activité", "error"))
       .finally(() => setLoading(false));
   }, [toast]);
   useEffect(() => { fetch(); }, [fetch]);
@@ -164,9 +164,9 @@ export default function ActivityPage() {
     <div className="px-6 py-8">
       <div className="mb-8 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#f0f0f5" }}>Activite</h1>
+          <h1 className="text-2xl font-bold" style={{ color: "#f0f0f5" }}>Activité</h1>
           <p className="mt-1 text-sm" style={{ color: "#9999b0" }}>
-            Les 50 derniers emails traites par Sendia.
+            Les 50 derniers emails traités par Sendia.
           </p>
         </div>
         <button

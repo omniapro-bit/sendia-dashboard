@@ -75,7 +75,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const initial = displayName.charAt(0).toUpperCase();
   async function handleSignOut() {
     try { await signOut(); router.push("/login"); }
-    catch { toast("Erreur lors de la deconnexion", "error"); }
+    catch { toast("Erreur lors de la déconnexion", "error"); }
   }
   function isActive(href: string) {
     return pathname === href || (href !== "/dashboard" && pathname.startsWith(href));

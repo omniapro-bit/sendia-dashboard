@@ -1,15 +1,15 @@
 {
   "actionMeta": {
-    "sent":     { "symbol": "✓",  "color": "#22c55e", "label": "Envoyee" },
-    "rejected": { "symbol": "✕",  "color": "#ef4444", "label": "Rejetee" },
+    "sent":     { "symbol": "✓",  "color": "#22c55e", "label": "Envoyée" },
+    "rejected": { "symbol": "✕",  "color": "#ef4444", "label": "Rejetée" },
     "pending":  { "symbol": "⏳", "color": "#f59e0b", "label": "En attente" }
   },
   "typeBadges": {
-    "devis":   { "label": "Devis",   "bg": "rgba(251,146,60,0.12)",  "color": "#fb923c" },
-    "lead":    { "label": "Lead",    "bg": "rgba(79,110,247,0.12)",  "color": "#4f6ef7" },
-    "support": { "label": "Support", "bg": "rgba(34,211,238,0.12)",  "color": "#22d3ee" },
-    "relance": { "label": "Relance", "bg": "rgba(245,158,11,0.12)",  "color": "#f59e0b" },
-    "general": { "label": "General", "bg": "rgba(153,153,176,0.12)", "color": "#9999b0" }
+    "devis":   { "label": "Devis",    "bg": "rgba(251,146,60,0.12)",  "color": "#fb923c" },
+    "lead":    { "label": "Lead",     "bg": "rgba(79,110,247,0.12)",  "color": "#4f6ef7" },
+    "support": { "label": "Support",  "bg": "rgba(34,211,238,0.12)",  "color": "#22d3ee" },
+    "relance": { "label": "Relance",  "bg": "rgba(245,158,11,0.12)",  "color": "#f59e0b" },
+    "general": { "label": "Général",  "bg": "rgba(153,153,176,0.12)", "color": "#9999b0" }
   },
   "fallbackBadge": { "label": "Autre", "bg": "rgba(153,153,176,0.12)", "color": "#9999b0" },
   "cardStyle": { "background": "#12121a", "border": "1px solid #2a2a3a" }

@@ -128,12 +128,12 @@ function EmailConnectionSection(props: {
     <div className="flex justify-center py-4"><Spinner size="md" /></div>
   ) : emailConnected ? (
     <>
-      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecte</h2>
+      <h2 className="text-base font-semibold text-[#f0f0f5] mb-4">Email connecté</h2>
       <div className="flex items-center gap-3 mb-4">
         <CheckCircleIcon />
         <div>
           <p className="text-sm font-semibold text-[#f0f0f5] flex items-center gap-2">
-            {providerLabel} connecte
+            {providerLabel} connecté
             <span className="w-2 h-2 rounded-full bg-[#34d399] animate-pulse inline-block" />
           </p>
           {clientEmail && <p className="text-xs text-[#9999b0] mt-0.5">{clientEmail}</p>}
@@ -151,9 +151,9 @@ function EmailConnectionSection(props: {
     </>
   ) : (
     <>
-      <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">Connectez votre boite email</h2>
+      <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">Connectez votre boîte email</h2>
       <p className="text-sm text-[#9999b0] mb-5">
-        Sendia analyse vos emails et vous propose des reponses intelligentes via WhatsApp.
+        Sendia analyse vos emails et vous propose des réponses intelligentes via WhatsApp.
       </p>
       <div className="flex gap-3 flex-wrap mb-5">
         <ProviderLink href={hrefs.gmail} id="gmail" iconSize={18} label="Connecter Gmail"
@@ -162,7 +162,7 @@ function EmailConnectionSection(props: {
           className="px-6 py-3 rounded-xl bg-transparent border border-[#2a2a3a] text-[#f0f0f5] font-medium text-sm hover:border-[#4f6ef7] hover:-translate-y-0.5" />
       </div>
       <p className="text-xs text-[#66667a]">
-        Vos donnees restent privees — aucun contenu d&apos;email n&apos;est stocke.
+        Vos données restent privées — aucun contenu d&apos;email n&apos;est stocké.
       </p>
     </>
   );
@@ -268,7 +268,7 @@ function ProfileContent() {
       try {
         await api.updateProfile(buildUpdateBody(form));
         await refreshProfile();
-        toast("Profil enregistre avec succes.", "success");
+        toast("Profil enregistré avec succès.", "success");
       } catch {
         toast("Erreur lors de la sauvegarde du profil.", "error");
       }
@@ -280,7 +280,7 @@ function ProfileContent() {
       try {
         await api.toggleActive(val);
         await refreshProfile();
-        toast(val ? "Sendia active !" : "Sendia desactive.", "success");
+        toast(val ? "Sendia activé !" : "Sendia désactivé.", "success");
       } catch {
         toast("Erreur lors du changement de statut.", "error");
       }
@@ -318,7 +318,7 @@ function ProfileContent() {
           <p className="text-sm font-semibold text-[#f0f0f5]">Statut Sendia</p>
           {emailConnected ? (
             <p className={`text-xs mt-0.5 ${isActive ? "text-emerald-400" : "text-[#66667a]"}`}>
-              {isActive ? "Actif — votre assistant traite vos emails" : "Inactif — aucun email ne sera traite"}
+              {isActive ? "Actif — votre assistant traite vos emails" : "Inactif — aucun email ne sera traité"}
             </p>
           ) : (
             <p className="text-xs mt-0.5 text-[#66667a]">
@@ -332,29 +332,29 @@ function ProfileContent() {
 
       <form onSubmit={handleSave}>
         {/* Section 3: General information */}
-        <CardSection title="Informations generales">
+        <CardSection title="Informations générales">
           <Input label="Votre nom" value={form.client_name}
             onChange={(e) => setField("client_name", e.target.value)} placeholder="Jean Dupont" />
           <Input label="Nom de l'entreprise" value={form.company_name}
             onChange={(e) => setField("company_name", e.target.value)} placeholder="Acme SAS" />
-          <Input label="Numero WhatsApp" value={form.whatsapp_number}
+          <Input label="Numéro WhatsApp" value={form.whatsapp_number}
             onChange={(e) => setField("whatsapp_number", e.target.value.replace(/[^0-9]/g, ""))}
             placeholder="33664365030"
             hint="Format international sans + ni espaces (ex: 33664365030)" />
         </CardSection>
 
         {/* Section 4: Response settings */}
-        <CardSection title="Parametres de reponse">
-          <Select label="Ton par defaut" value={form.tone_preference}
+        <CardSection title="Paramètres de réponse">
+          <Select label="Ton par défaut" value={form.tone_preference}
             onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
           <Textarea label="Signature" value={form.signature} rows={4}
             onChange={(e) => setField("signature", e.target.value)}
             placeholder={"Cordialement,\nJean Dupont"}
-            hint="Cette signature sera ajoutee a la fin de chaque reponse." />
+            hint="Cette signature sera ajoutée à la fin de chaque réponse." />
           <Textarea label="Contexte personnalise" value={form.custom_prompt_context} rows={5}
             onChange={(e) => setField("custom_prompt_context", e.target.value)}
-            placeholder="Decrivez votre activite, vos preferences ou toute information utile pour Sendia..."
-            hint="Ces informations aident Sendia a mieux comprendre votre contexte metier." />
+            placeholder="Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."
+            hint="Ces informations aident Sendia à mieux comprendre votre contexte métier." />
         </CardSection>
 
         <div className="flex justify-end">
