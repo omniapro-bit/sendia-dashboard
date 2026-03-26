@@ -260,7 +260,7 @@ export default function DocumentsPage() {
         </div>
       </section>
 
-      <UpgradeGate allowed={clientPlan?.features.has_rag_search ?? true} featureName="Documents RAG">
+      <UpgradeGate allowed={clientPlan ? clientPlan.features.has_rag_search : false} featureName="Documents RAG">
       <section className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-[#2a2a3a]">
           <h2 className="text-base font-semibold text-[#f0f0f5]">Importer un document</h2>

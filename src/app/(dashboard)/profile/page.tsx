@@ -238,15 +238,18 @@ function ProfileContent() {
   const [emailConnected, setEmailConnected] = useState(false);
   const [emailLoading, setEmailLoading] = useState(true);
 
-  // Detect OAuth callback redirect (?connected=gmail or ?connected=outlook)
+  // Detect OAuth callback redirect (?connected=gmail or ?connected=outlook) — fire once only
+  const [oauthHandled, setOauthHandled] = useState(false);
   useEffect(() => {
+    if (oauthHandled) return;
     const connected = searchParams.get("connected");
     if (connected) {
+      setOauthHandled(true);
       toast(`${connected === "gmail" ? "Gmail" : "Outlook"} connecté avec succès !`, "success");
       refreshProfile();
-      router.replace("/profile");
+      window.history.replaceState(null, "", "/profile");
     }
-  }, [searchParams, refreshProfile, router, toast]);
+  }, [searchParams, refreshProfile, toast, oauthHandled]);
 
   // Single effect: populate form from profile + fetch email connection status
   useEffect(() => {
@@ -329,6 +332,25 @@ function ProfileContent() {
         <Toggle checked={isActive} onChange={handleToggle}
           disabled={toggling || !emailConnected} label={isActive ? "Actif" : "Inactif"} />
       </div>
+
+      {/* Section 2b: Current plan */}
+      {profile?.plan && (
+        <div className="bg-[#12121a] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-sm font-semibold text-[#f0f0f5]">Plan actuel</p>
+            <p className="text-xs mt-0.5 text-[#9999b0]">
+              {profile.plan === "trial" ? "Essai gratuit" :
+               profile.plan === "starter" ? "Starter — 29€/mois" :
+               profile.plan === "professional" ? "Professional — 79€/mois" :
+               profile.plan === "enterprise" ? "Enterprise — 119€/mois" :
+               profile.plan}
+            </p>
+          </div>
+          <a href="/billing" className="text-sm text-[#4f6ef7] hover:underline font-medium">
+            {profile.plan === "trial" ? "Choisir un plan →" : "Gérer →"}
+          </a>
+        </div>
+      )}
 
       <form onSubmit={handleSave}>
         {/* Section 3: General information */}
