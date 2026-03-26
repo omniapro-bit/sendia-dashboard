@@ -270,7 +270,23 @@ export default function BillingPage() {
   useEffect(() => {
     api.getBillingStatus()
       .then(setBillingStatus)
-      .catch(() => toast("Erreur lors du chargement de l'abonnement", "error"))
+      .catch(async () => {
+        // Fallback: use /plan endpoint which works with API secret auth
+        try {
+          const plan = await api.getClientPlan();
+          setBillingStatus({
+            plan: plan.plan,
+            status: plan.plan_status || "trial",
+            display_name: plan.plan === "trial" ? "Essai gratuit" : plan.plan === "starter" ? "Starter" : plan.plan === "professional" ? "Professional" : "Enterprise",
+            trial_days_left: plan.trial_days_left ?? 0,
+            emails_used_this_month: plan.features?.emails_used_this_month ?? 0,
+            emails_limit: plan.features?.max_emails_per_month ?? 1000,
+            has_stripe_customer: false,
+          } as unknown as BillingStatus);
+        } catch {
+          toast("Erreur lors du chargement de l'abonnement", "error");
+        }
+      })
       .finally(() => setPageLoading(false));
   }, [toast]);
 

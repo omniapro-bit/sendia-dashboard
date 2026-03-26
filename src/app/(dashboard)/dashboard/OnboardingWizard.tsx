@@ -42,7 +42,10 @@ export function OnboardingWizard({
   profile: ClientProfile;
   emailConnected: boolean;
 }) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("sendia_wizard_dismissed") === "true";
+    return false;
+  });
   const steps = buildOnboardingSteps(profile, emailConnected);
   const requiredSteps = steps.filter(s => !s.skippable);
   const completedRequired = requiredSteps.filter(s => s.done).length;
@@ -50,7 +53,15 @@ export function OnboardingWizard({
   const progressPct = Math.round((completedRequired / requiredSteps.length) * 100);
   const currentStepIndex = steps.findIndex(s => !s.done && !s.skippable);
 
+  function handleDismiss() {
+    setDismissed(true);
+    if (typeof window !== "undefined") localStorage.setItem("sendia_wizard_dismissed", "true");
+  }
+
+  // Auto-hide when all required steps are done
   if (allRequiredDone && dismissed) return null;
+  // Don't show wizard at all if everything is configured
+  if (allRequiredDone) return null;
 
   if (allRequiredDone) {
     return (
@@ -64,7 +75,7 @@ export function OnboardingWizard({
         }}
       >
         <button
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
           className="absolute top-3 right-3 text-[#66667a] hover:text-[#f0f0f5] transition-colors"
           aria-label="Fermer"
         >
