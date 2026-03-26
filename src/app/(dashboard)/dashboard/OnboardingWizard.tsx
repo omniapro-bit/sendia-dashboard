@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import type { ClientProfile } from "@/lib/types";
 
@@ -41,6 +42,7 @@ export function OnboardingWizard({
   profile: ClientProfile;
   emailConnected: boolean;
 }) {
+  const [dismissed, setDismissed] = useState(false);
   const steps = buildOnboardingSteps(profile, emailConnected);
   const requiredSteps = steps.filter(s => !s.skippable);
   const completedRequired = requiredSteps.filter(s => s.done).length;
@@ -48,10 +50,12 @@ export function OnboardingWizard({
   const progressPct = Math.round((completedRequired / requiredSteps.length) * 100);
   const currentStepIndex = steps.findIndex(s => !s.done && !s.skippable);
 
+  if (allRequiredDone && dismissed) return null;
+
   if (allRequiredDone) {
     return (
       <div
-        className="mb-8"
+        className="mb-8 relative"
         style={{
           background: "linear-gradient(135deg, rgba(34,197,94,0.06), #12121a 60%)",
           border: "1px solid rgba(34,197,94,0.25)",
@@ -59,6 +63,15 @@ export function OnboardingWizard({
           padding: "24px 28px",
         }}
       >
+        <button
+          onClick={() => setDismissed(true)}
+          className="absolute top-3 right-3 text-[#66667a] hover:text-[#f0f0f5] transition-colors"
+          aria-label="Fermer"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
         <div className="flex items-center gap-3">
           <div
             style={{
