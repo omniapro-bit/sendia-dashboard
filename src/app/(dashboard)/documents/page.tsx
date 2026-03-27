@@ -17,7 +17,7 @@ type RagDocument = {
 };
 
 // Upload constraints
-const ACCEPTED_TEXT_EXTENSIONS = [".txt", ".md", ".csv", ".json"];
+const ACCEPTED_TEXT_EXTENSIONS = [".txt", ".md", ".csv", ".json", ".pdf"];
 const ACCEPT_ATTR = ACCEPTED_TEXT_EXTENSIONS.join(",");
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -135,7 +135,7 @@ export default function DocumentsPage() {
 
     if (!ACCEPTED_TEXT_EXTENSIONS.includes(ext)) {
       toast(
-        `Format non pris en charge (${ext}). Utilisez .txt, .md, .csv ou .json.`,
+        `Format non pris en charge (${ext}). Utilisez .txt, .md, .csv, .json ou .pdf.`,
         "error",
       );
       return;
@@ -265,7 +265,7 @@ export default function DocumentsPage() {
         <div className="px-6 py-4 border-b border-[#2a2a3a]">
           <h2 className="text-base font-semibold text-[#f0f0f5]">Importer un document</h2>
           <p className="text-xs text-[#66667a] mt-0.5">
-            Formats acceptés : .txt, .md, .csv, .json — max 10 Mo
+            Formats acceptés : .txt, .md, .csv, .json, .pdf — max 10 Mo
           </p>
         </div>
         <div className="px-6 py-6">
@@ -303,7 +303,7 @@ export default function DocumentsPage() {
                     Glissez un fichier ici ou{" "}
                     <span className="text-[#4f6ef7]">cliquez pour parcourir</span>
                   </p>
-                  <p className="text-xs text-[#66667a] mt-1">Un fichier à la fois — .txt, .md, .csv, .json</p>
+                  <p className="text-xs text-[#66667a] mt-1">Un fichier à la fois — .txt, .md, .csv, .json, .pdf</p>
                 </div>
               </>
             )}
