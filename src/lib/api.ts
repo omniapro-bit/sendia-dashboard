@@ -102,9 +102,9 @@ export const api = {
       "POST", "/toggle",
       is_active !== undefined ? { is_active } : {}
     ),
-  ingestDocument: (file_name: string, content: string) =>
+  ingestDocument: (file_name: string, content: string, file_base64?: string) =>
     apiMutate<{ success: boolean; chunks_ingested: number }>(
-      "POST", "/rag/ingest", { file_name, content }
+      "POST", "/rag/ingest", { file_name, content: content || undefined, file_base64 }
     ),
   getOnboardingStatus: () =>
     apiMutate<{

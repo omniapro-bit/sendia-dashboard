@@ -151,6 +151,19 @@ export default function DocumentsPage() {
 
     setUploading(true);
     try {
+      if (file.name.toLowerCase().endsWith(".pdf")) {
+        // PDFs: send as base64 to backend for server-side parsing
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve((r.result as string).split(",")[1] || "");
+          r.onerror = () => reject(new Error("Lecture du fichier impossible"));
+          r.readAsDataURL(file);
+        });
+        const res = await api.ingestDocument(file.name, "", base64);
+        toast(`"${file.name}" indexé — ${String(res.chunks_ingested)} fragment(s)`, "success");
+        await loadDocuments();
+        return;
+      }
       const text = await readAsText(file);
       const chunks = chunkText(text);
 
