@@ -111,6 +111,7 @@ export default function AdminPage() {
   const [execData, setExecData] = useState<ExecData | null>(null);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [updatingPlan, setUpdatingPlan] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
@@ -139,6 +140,18 @@ export default function AdminPage() {
     const interval = setInterval(fetchData, 30000); // refresh every 30s
     return () => clearInterval(interval);
   }, [isAdmin, router, fetchData]);
+
+  async function handlePlanChange(clientId: string, newPlan: string) {
+    setUpdatingPlan(clientId);
+    try {
+      await adminFetch("/update-plan", {
+        method: "POST",
+        body: JSON.stringify({ client_id: clientId, plan: newPlan }),
+      });
+      await fetchData();
+    } catch { /* ignore */ }
+    setUpdatingPlan(null);
+  }
 
   async function handleToggle(clientId: string, currentActive: boolean) {
     setToggling(clientId);
@@ -280,7 +293,22 @@ export default function AdminPage() {
                       {c.provider ?? "—"}
                     </span>
                   </td>
-                  <td style={{ padding: "10px 12px" }}><PlanBadge plan={c.plan} status={c.plan_status} /></td>
+                  <td style={{ padding: "10px 12px" }}>
+                    <select
+                      value={c.plan}
+                      disabled={updatingPlan === c.client_id}
+                      onChange={(e) => handlePlanChange(c.client_id, e.target.value)}
+                      style={{
+                        padding: "3px 8px", borderRadius: 8, border: "1px solid #2a2a3a",
+                        background: "#12121a", color: "#f0f0f5", fontSize: "0.75rem",
+                        fontWeight: 600, cursor: updatingPlan === c.client_id ? "wait" : "pointer",
+                      }}
+                    >
+                      {["trial", "starter", "professional", "enterprise"].map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td style={{ padding: "10px 12px" }}>
                     <span style={badge(c.oauth_status === "active" ? "#064e3b" : "#3b2f0a", c.oauth_status === "active" ? "#34d399" : "#fbbf24")}>
                       {c.oauth_status ?? "—"}
