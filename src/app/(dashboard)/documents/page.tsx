@@ -67,7 +67,7 @@ async function insertChunkRows(
   const rows = chunks.map((content, chunk_index) => ({
     doc_id: docId,
     client_id: clientId,
-    content,
+    chunk_text: content,
     chunk_index,
   }));
   const { error } = await supabase.from("rag_chunks").insert(rows);
