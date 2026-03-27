@@ -73,7 +73,7 @@ async function insertDocumentRecord(
     .insert({ client_id: clientId, doc_title: fileName, doc_type: "uploaded_document" })
     .select("id")
     .single();
-  if (error || !data) throw new Error(error?.message ?? "Impossible de cr\u00e9er le document.");
+  if (error || !data) throw new Error(error?.message ?? "Impossible de créer le document.");
   return data.id as string;
 }
 
@@ -123,7 +123,7 @@ export default function DocumentsPage() {
   useEffect(() => { api.getClientPlan().then(setClientPlan).catch(() => {}); }, []);
 
   async function deleteDocument(doc: RagDocument) {
-    if (!confirm(`Supprimer "${doc.doc_title}" ? Cette action est irr\u00e9versible.`)) return;
+    if (!confirm(`Supprimer "${doc.doc_title}" ? Cette action est irréversible.`)) return;
     setDeletingId(doc.id);
     const { error: chunksErr } = await supabase
       .from("rag_chunks")
@@ -142,7 +142,7 @@ export default function DocumentsPage() {
     if (docErr) {
       toast("Erreur lors de la suppression du document.", "error");
     } else {
-      toast(`"${doc.doc_title}" supprim\u00e9.`, "success");
+      toast(`"${doc.doc_title}" supprimé.`, "success");
       setDocuments(prev => prev.filter(d => d.id !== doc.id));
     }
     setDeletingId(null);
@@ -171,7 +171,7 @@ export default function DocumentsPage() {
     try {
       const content = await readFileContent(file);
       const result = await api.ingestDocument(file.name, content);
-      toast(`"${file.name}" index\u00e9 \u2014 ${result.chunks_ingested} fragment(s).`, "success");
+      toast(`"${file.name}" indexé — ${result.chunks_ingested} fragment(s).`, "success");
       await loadDocuments();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erreur inconnue";
@@ -196,7 +196,7 @@ export default function DocumentsPage() {
     <div className="px-6 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#f0f0f5]">Mes documents</h1>
-        <p className="text-[#9999b0] mt-1">Enrichissez Sendia avec vos propres documents de r\u00e9f\u00e9rence.</p>
+        <p className="text-[#9999b0] mt-1">Enrichissez Sendia avec vos propres documents de référence.</p>
       </div>
 
       <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl p-5 mb-6 flex items-center gap-4">
@@ -207,7 +207,7 @@ export default function DocumentsPage() {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#f0f0f5]">Documents index\u00e9s</p>
+          <p className="text-sm font-semibold text-[#f0f0f5]">Documents indexés</p>
           <p className="text-2xl font-bold text-[#4f6ef7] leading-tight">
             {docsLoading ? <Spinner size="sm" /> : documents.length}
           </p>
@@ -224,7 +224,7 @@ export default function DocumentsPage() {
             <div className="px-6 py-8 flex justify-center"><Spinner size="md" /></div>
           ) : documents.length === 0 ? (
             <div className="px-6 py-8 text-center text-[#66667a] text-sm">
-              Aucun document import\u00e9. Ajoutez-en ci-dessous pour enrichir les r\u00e9ponses de Sendia.
+              Aucun document importé. Ajoutez-en ci-dessous pour enrichir les réponses de Sendia.
             </div>
           ) : (
             documents.map(doc => (
@@ -269,14 +269,14 @@ export default function DocumentsPage() {
         <div className="px-6 py-4 border-b border-[#2a2a3a]">
           <h2 className="text-base font-semibold text-[#f0f0f5]">Importer un document</h2>
           <p className="text-xs text-[#66667a] mt-0.5">
-            Formats accept\u00e9s : .txt, .md, .csv, .json, .pdf \u2014 max 10 Mo
+            Formats acceptés : .txt, .md, .csv, .json, .pdf — max 10 Mo
           </p>
         </div>
         <div className="px-6 py-6">
           <div
             role="button"
             tabIndex={0}
-            aria-label="Zone de d\u00e9p\u00f4t de fichier"
+            aria-label="Zone de dépôt de fichier"
             onClick={() => !uploading && inputRef.current?.click()}
             onKeyDown={e => e.key === "Enter" && !uploading && inputRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -292,7 +292,7 @@ export default function DocumentsPage() {
             {uploading ? (
               <>
                 <Spinner size="lg" />
-                <p className="text-sm text-[#9999b0]">Ingestion en cours\u2026</p>
+                <p className="text-sm text-[#9999b0]">Ingestion en cours…</p>
               </>
             ) : (
               <>
@@ -307,7 +307,7 @@ export default function DocumentsPage() {
                     Glissez un fichier ici ou{" "}
                     <span className="text-[#4f6ef7]">cliquez pour parcourir</span>
                   </p>
-                  <p className="text-xs text-[#66667a] mt-1">Un fichier \u00e0 la fois \u2014 .txt, .md, .csv, .json, .pdf</p>
+                  <p className="text-xs text-[#66667a] mt-1">Un fichier à la fois — .txt, .md, .csv, .json, .pdf</p>
                 </div>
               </>
             )}
