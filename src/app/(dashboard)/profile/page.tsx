@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import DOMPurify from "dompurify";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
@@ -441,14 +442,14 @@ function ProfileContent() {
               suppressContentEditableWarning
               className="w-full min-h-[120px] rounded-xl border border-[#2a2a3a] bg-[#0f0f18] px-4 py-3 text-sm text-[#f0f0f5] focus:outline-none focus:border-[#4f6ef7] transition-colors"
               style={{ lineHeight: 1.5 }}
-              dangerouslySetInnerHTML={{ __html: form.signature || "" }}
-              onBlur={(e) => setField("signature", e.currentTarget.innerHTML)}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(form.signature || "") }}
+              onBlur={(e) => setField("signature", DOMPurify.sanitize(e.currentTarget.innerHTML))}
               onPaste={(e) => {
-                // Allow rich paste (HTML with images/formatting from email clients)
+                // Allow rich paste (HTML with images/formatting from email clients) — sanitized
                 const html = e.clipboardData.getData("text/html");
                 if (html) {
                   e.preventDefault();
-                  document.execCommand("insertHTML", false, html);
+                  document.execCommand("insertHTML", false, DOMPurify.sanitize(html));
                 }
               }}
             />
