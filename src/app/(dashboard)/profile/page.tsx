@@ -13,45 +13,11 @@ import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Toggle";
 import { Spinner } from "@/components/ui/Spinner";
 import { TONE_OPTIONS, DEFAULT_TONE } from "./profile-config";
+import { buildOAuthUrls } from "@/lib/oauth-config";
 
 // ─── Provider config ───────────────────────────────────────────────────────────
 
 type ProviderId = "gmail" | "outlook";
-type ProviderHrefs = Record<ProviderId, string>;
-
-function buildOAuthHref(base: string, params: Record<string, string>): string {
-  return `${base}?${new URLSearchParams(params).toString()}`;
-}
-
-function getProviderHrefs(clientId: string): ProviderHrefs {
-  const state = encodeURIComponent(JSON.stringify({ client_id: clientId }));
-  return {
-    gmail: buildOAuthHref("https://accounts.google.com/o/oauth2/v2/auth", {
-      client_id: "274786161227-iiip3l1i6bm5rnjngp9r8tsqa57ssrah.apps.googleusercontent.com",
-      redirect_uri: "https://n8n.getsendia.com/webhook/oauth-callback",
-      response_type: "code",
-      scope: [
-        "https://www.googleapis.com/auth/gmail.readonly",
-        "https://www.googleapis.com/auth/gmail.send",
-        "https://www.googleapis.com/auth/gmail.modify",
-        "https://www.googleapis.com/auth/gmail.labels",
-        "https://www.googleapis.com/auth/calendar",
-        "https://www.googleapis.com/auth/userinfo.email",
-      ].join(" "),
-      access_type: "offline",
-      prompt: "consent",
-      state,
-    }),
-    outlook: buildOAuthHref("https://login.microsoftonline.com/common/oauth2/v2.0/authorize", {
-      client_id: "ead1260f-07d2-4220-b215-e0af081e67fc",
-      redirect_uri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
-      response_type: "code",
-      scope: "offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
-      prompt: "consent",
-      state,
-    }),
-  };
-}
 
 // ─── Shared UI primitives ─────────────────────────────────────────────────────
 
@@ -168,7 +134,7 @@ function EmailConnectionSection(props: {
   emailLoading: boolean;
   gmailEmail: string | undefined;
   outlookEmail: string | undefined;
-  hrefs: ProviderHrefs;
+  hrefs: Record<ProviderId, string>;
   onDisconnect?: (provider: "gmail" | "outlook") => void;
 }) {
   const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs, onDisconnect } = props;
@@ -359,7 +325,7 @@ function ProfileContent() {
   }
 
   const isActive = form.is_active;
-  const hrefs = getProviderHrefs(profile?.client_id ?? "");
+  const hrefs = buildOAuthUrls(profile?.client_id ?? "");
 
   return (
     <div className="px-6 py-8">

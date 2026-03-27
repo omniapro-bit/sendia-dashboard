@@ -3,38 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Spinner } from "@/components/ui/Spinner";
-
-function buildConnectUrls(clientId: string) {
-  const state = encodeURIComponent(JSON.stringify({ client_id: clientId }));
-  return {
-    gmail: "https://accounts.google.com/o/oauth2/v2/auth?" +
-      new URLSearchParams({
-        client_id: "274786161227-iiip3l1i6bm5rnjngp9r8tsqa57ssrah.apps.googleusercontent.com",
-        redirect_uri: "https://n8n.getsendia.com/webhook/oauth-callback",
-        response_type: "code",
-        scope: [
-          "https://www.googleapis.com/auth/gmail.readonly",
-          "https://www.googleapis.com/auth/gmail.send",
-          "https://www.googleapis.com/auth/gmail.modify",
-          "https://www.googleapis.com/auth/gmail.labels",
-          "https://www.googleapis.com/auth/calendar",
-          "https://www.googleapis.com/auth/userinfo.email",
-        ].join(" "),
-        access_type: "offline",
-        prompt: "consent",
-        state,
-      }).toString(),
-    outlook: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
-      new URLSearchParams({
-        client_id: "ead1260f-07d2-4220-b215-e0af081e67fc",
-        redirect_uri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
-        response_type: "code",
-        scope: "offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
-        prompt: "consent",
-        state,
-      }).toString(),
-  };
-}
+import { buildOAuthUrls } from "@/lib/oauth-config";
 
 function CheckIcon() {
   return (
@@ -51,7 +20,7 @@ export default function ConnectPage() {
   const [emailConnected, setEmailConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const provider = profile?.email_provider as string | undefined;
-  const urls = buildConnectUrls(profile?.client_id ?? "");
+  const urls = buildOAuthUrls(profile?.client_id ?? "");
 
   useEffect(() => {
     api.getOnboardingStatus()
