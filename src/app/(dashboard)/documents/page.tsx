@@ -22,10 +22,6 @@ const ACCEPT_ATTR = ACCEPTED_TEXT_EXTENSIONS.join(",");
 const MAX_BYTES = 10 * 1024 * 1024;
 const TEXT_EXTS = new Set([".txt", ".md", ".csv", ".json"]);
 
-// RAG chunking parameters (~500 tokens per chunk)
-const CHUNK_SIZE = 2000;
-const CHUNK_OVERLAP = 200;
-
 function readAsText(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -52,48 +48,7 @@ async function readFileContent(file: File): Promise<string> {
   return TEXT_EXTS.has(ext) ? readAsText(file) : readAsBase64(file);
 }
 
-function chunkText(text: string): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-  while (start < text.length) {
-    const end = Math.min(start + CHUNK_SIZE, text.length);
-    chunks.push(text.slice(start, end));
-    start += CHUNK_SIZE - CHUNK_OVERLAP;
-    if (start >= text.length) break;
-  }
-  return chunks.filter(c => c.trim().length > 0);
-}
-
-async function insertDocumentRecord(
-  clientId: string,
-  fileName: string,
-): Promise<string> {
-  const { data, error } = await supabase
-    .from("rag_documents")
-    .insert({ client_id: clientId, doc_title: fileName, doc_type: "uploaded_document" })
-    .select("id")
-    .single();
-  if (error || !data) throw new Error(error?.message ?? "Impossible de créer le document.");
-  return data.id as string;
-}
-
-async function insertChunkRows(
-  docId: string,
-  clientId: string,
-  chunks: string[],
-): Promise<void> {
-  const rows = chunks.map((content, chunk_index) => ({
-    doc_id: docId,
-    client_id: clientId,
-    chunk_text: content,
-    chunk_index,
-  }));
-  const { error } = await supabase.from("rag_chunks").insert(rows);
-  if (error) {
-    await supabase.from("rag_documents").delete().eq("id", docId);
-    throw new Error(error.message);
-  }
-}
+// insertDocumentRecord, insertChunkRows, chunkText removed — uploads go through api.ingestDocument
 
 export default function DocumentsPage() {
   const { toast } = useToast();
