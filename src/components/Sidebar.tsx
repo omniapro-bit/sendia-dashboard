@@ -88,7 +88,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </Link>
       </div>
       <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4, overflowY: "auto" }}>
-        {NAV_ITEMS.map(item => (
+        {NAV_ITEMS.filter(item => item.href !== "/admin" || (user?.email ?? "").toLowerCase() === "contact@getsendia.com").map(item => (
           <NavLink key={item.href} item={item} active={isActive(item.href)} />
         ))}
         {onClose && <button onClick={onClose} className="sr-only">Fermer</button>}
