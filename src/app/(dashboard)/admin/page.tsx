@@ -128,7 +128,7 @@ export default function AdminPage() {
       setError("");
       setLastRefresh(new Date());
     } catch (err) {
-      setError("Impossible de charger les donnees admin");
+      setError("Impossible de charger les donn\u00e9es admin");
     } finally {
       setLoading(false);
     }
@@ -206,9 +206,9 @@ export default function AdminPage() {
       {/* Health + Stats row */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }}>
         <div style={card}>
-          <div style={{ fontSize: "0.75rem", color: "#66667a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Systeme</div>
+          <div style={{ fontSize: "0.75rem", color: "#66667a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Syst\u00e8me</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{ color: "#f0f0f5", fontWeight: 600 }}>Base de donnees</span>
+            <span style={{ color: "#f0f0f5", fontWeight: 600 }}>Base de donn\u00e9es</span>
             <StatusBadge ok={monitor?.db.connected ?? false} />
           </div>
           <div style={{ color: "#9999b0", fontSize: "0.85rem" }}>
@@ -344,7 +344,7 @@ export default function AdminPage() {
 
         <div style={card}>
           <h3 style={{ color: "#f0f0f5", fontWeight: 700, fontSize: "0.95rem", marginBottom: 8 }}>
-            Emails bloques ({monitor?.stuck_emails.length ?? 0})
+            Emails bloqu\u00e9s ({monitor?.stuck_emails.length ?? 0})
           </h3>
           {monitor && monitor.stuck_emails.length === 0 ? (
             <div style={{ color: "#34d399", fontSize: "0.85rem" }}>Aucun email bloque</div>
