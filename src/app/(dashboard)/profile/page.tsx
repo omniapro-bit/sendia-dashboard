@@ -385,7 +385,7 @@ function ProfileContent() {
               {profile.plan === "trial" ? "Essai gratuit" :
                profile.plan === "starter" ? "Starter — 29€/mois" :
                profile.plan === "professional" ? "Professional — 79€/mois" :
-               profile.plan === "enterprise" ? "Enterprise — 119€/mois" :
+               profile.plan === "enterprise" ? "Enterprise — Sur devis" :
                profile.plan}
             </p>
           </div>
@@ -412,7 +412,7 @@ function ProfileContent() {
         <CardSection title={"Paramètres de réponse"}>
           <Select label={"Ton par défaut"} value={form.tone_preference}
             onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
-          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName={"Personnalisation avancée"}>
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : false} featureName={"Personnalisation avancée"}>
             <Select label={"Secteur d'activité"} value={form.industry}
               onChange={(e) => setField("industry", e.target.value)} options={INDUSTRY_OPTIONS} />
             <Select label="Formule d'ouverture" value={form.greeting_style}
@@ -440,7 +440,7 @@ function ProfileContent() {
               Collez votre signature depuis Gmail ou Outlook — les images et la mise en forme sont conservées.
             </p>
           </div>
-          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName={"Instructions personnalisées"}>
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : false} featureName={"Instructions personnalisées"}>
             <Textarea label={"Contexte personnalisé"} value={form.custom_prompt_context} rows={5}
               onChange={(e) => setField("custom_prompt_context", e.target.value)}
               placeholder={"Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."}

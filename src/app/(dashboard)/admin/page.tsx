@@ -259,7 +259,7 @@ export default function AdminPage() {
         </div>
         {execData && execData.recent_errors.length > 0 && (
           <div style={{ marginTop: 12 }}>
-            <div style={{ fontSize: "0.8rem", color: "#f87171", fontWeight: 600, marginBottom: 6 }}>Erreurs recentes</div>
+            <div style={{ fontSize: "0.8rem", color: "#f87171", fontWeight: 600, marginBottom: 6 }}>Erreurs récentes</div>
             {execData.recent_errors.slice(0, 5).map((e) => (
               <div key={e.id} style={{ fontSize: "0.8rem", color: "#9999b0", padding: "3px 0" }}>
                 {e.workflow} — {e.started}
@@ -347,7 +347,7 @@ export default function AdminPage() {
             Emails bloqués ({monitor?.stuck_emails.length ?? 0})
           </h3>
           {monitor && monitor.stuck_emails.length === 0 ? (
-            <div style={{ color: "#34d399", fontSize: "0.85rem" }}>Aucun email bloque</div>
+            <div style={{ color: "#34d399", fontSize: "0.85rem" }}>Aucun email bloqué</div>
           ) : (
             monitor?.stuck_emails.map((e) => (
               <div key={e.id} style={{ color: "#fca5a5", fontSize: "0.8rem", padding: "3px 0" }}>
