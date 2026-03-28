@@ -51,6 +51,7 @@ export type ProfileUpdateBody = {
   tone_preference?: string;
   custom_prompt_context?: string;
   greeting_style?: string;
+  industry?: string;
   is_active?: boolean;
   prompt_devis?: string;
   prompt_lead?: string;

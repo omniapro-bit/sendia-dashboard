@@ -5,14 +5,15 @@ import DOMPurify from "dompurify";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { ProfileUpdateBody } from "@/lib/types";
+import type { ProfileUpdateBody, ClientPlan } from "@/lib/types";
+import { UpgradeGate } from "@/components/UpgradeGate";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { Toggle } from "@/components/ui/Toggle";
 import { Spinner } from "@/components/ui/Spinner";
-import { TONE_OPTIONS, DEFAULT_TONE } from "./profile-config";
+import { TONE_OPTIONS, INDUSTRY_OPTIONS, GREETING_OPTIONS, DEFAULT_TONE, DEFAULT_INDUSTRY } from "./profile-config";
 import { buildOAuthUrls } from "@/lib/oauth-config";
 
 // ─── Provider config ───────────────────────────────────────────────────────────
@@ -189,6 +190,8 @@ type ProfileFields = {
   company_name: string;
   signature: string;
   tone_preference: string;
+  industry: string;
+  greeting_style: string;
   custom_prompt_context: string;
   is_active: boolean;
 };
@@ -202,6 +205,8 @@ function emptyForm(): FormState {
     whatsapp_number: "",
     signature: "",
     tone_preference: DEFAULT_TONE,
+    industry: DEFAULT_INDUSTRY,
+    greeting_style: "",
     custom_prompt_context: "",
     is_active: false,
   };
@@ -214,6 +219,8 @@ function profileToForm(p: ProfileInput): FormState {
     whatsapp_number: p.whatsapp_number ?? "",
     signature: p.signature ?? "",
     tone_preference: p.tone_preference ?? DEFAULT_TONE,
+    industry: (p as any).industry ?? DEFAULT_INDUSTRY,
+    greeting_style: p.greeting_style ?? "",
     custom_prompt_context: p.custom_prompt_context ?? "",
     is_active: p.is_active ?? false,
   };
@@ -226,6 +233,8 @@ function buildUpdateBody(form: FormState): ProfileUpdateBody {
     whatsapp_number: form.whatsapp_number,
     signature: form.signature,
     tone_preference: form.tone_preference,
+    industry: form.industry,
+    greeting_style: form.greeting_style,
     custom_prompt_context: form.custom_prompt_context,
   };
 }
@@ -242,6 +251,7 @@ function ProfileContent() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [clientPlan, setClientPlan] = useState<ClientPlan | null>(null);
   const [saving, setSaving] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [gmailConnected, setGmailConnected] = useState(false);
@@ -276,6 +286,7 @@ function ProfileContent() {
       })
       .catch(() => {})
       .finally(() => setEmailLoading(false));
+    api.getClientPlan().then(setClientPlan).catch(() => {});
   }, [profile]);
 
   function setField(field: keyof FormState, value: string) {
@@ -398,9 +409,15 @@ function ProfileContent() {
         </CardSection>
 
         {/* Section 4: Response settings */}
-        <CardSection title="Paramètres de réponse">
-          <Select label="Ton par défaut" value={form.tone_preference}
+        <CardSection title="Parametres de reponse">
+          <Select label="Ton par defaut" value={form.tone_preference}
             onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName="Personnalisation avancee">
+            <Select label="Secteur d'activite" value={form.industry}
+              onChange={(e) => setField("industry", e.target.value)} options={INDUSTRY_OPTIONS} />
+            <Select label="Formule d'ouverture" value={form.greeting_style}
+              onChange={(e) => setField("greeting_style", e.target.value)} options={GREETING_OPTIONS} />
+          </UpgradeGate>
           <div>
             <label className="block text-sm font-medium text-[#9999b0] mb-1.5">Signature</label>
             <div
@@ -423,10 +440,12 @@ function ProfileContent() {
               Collez votre signature depuis Gmail ou Outlook — les images et la mise en forme sont conservées.
             </p>
           </div>
-          <Textarea label="Contexte personnalise" value={form.custom_prompt_context} rows={5}
-            onChange={(e) => setField("custom_prompt_context", e.target.value)}
-            placeholder="Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."
-            hint="Ces informations aident Sendia à mieux comprendre votre contexte métier." />
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName="Instructions personnalisees">
+            <Textarea label="Contexte personnalise" value={form.custom_prompt_context} rows={5}
+              onChange={(e) => setField("custom_prompt_context", e.target.value)}
+              placeholder="Decrivez votre activite, vos preferences ou toute information utile pour Sendia..."
+              hint="Ces informations aident Sendia a mieux comprendre votre contexte metier." />
+          </UpgradeGate>
         </CardSection>
 
         <div className="flex justify-end">
