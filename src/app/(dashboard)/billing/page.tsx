@@ -9,11 +9,11 @@ import PLANS from "./plan-data.json";
 
 // Plan shape (mirrors plan-data.json)
 type Plan = {
-  // unique plan identifier sent to the API
   id: string;
   name: string;
   price: number;
   popular: boolean;
+  contact?: boolean;
   features: string[];
 };
 
@@ -95,8 +95,14 @@ function PlanCard({ plan, onSelect, loading }: {
       )}
       <p className="text-base font-bold text-[#f0f0f5]">{plan.name}</p>
       <div className="mt-2 mb-4 flex items-baseline gap-1">
-        <span className="text-3xl font-extrabold text-[#f0f0f5]">{plan.price}€</span>
-        <span className="text-sm text-[#66667a]">/mois</span>
+        {plan.price === -1 ? (
+          <span className="text-2xl font-extrabold text-[#f0f0f5]">Sur devis</span>
+        ) : (
+          <>
+            <span className="text-3xl font-extrabold text-[#f0f0f5]">{plan.price}€</span>
+            <span className="text-sm text-[#66667a]">/mois</span>
+          </>
+        )}
       </div>
       <ul className="flex-1 space-y-2.5 mb-6">
         {plan.features.map(f => (
@@ -106,16 +112,26 @@ function PlanCard({ plan, onSelect, loading }: {
           </li>
         ))}
       </ul>
-      <button
-        onClick={onSelect}
-        disabled={loading}
-        className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 disabled:opacity-50"
-        style={plan.popular
-          ? { background: "#4f6ef7", color: "#fff" }
-          : { background: "#1c1c28", color: "#f0f0f5", border: "1px solid #2a2a3a" }}
-      >
-        {loading ? "Chargement…" : "Choisir ce plan"}
-      </button>
+      {plan.contact ? (
+        <a
+          href="mailto:contact@getsendia.com?subject=Sendia Enterprise"
+          className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 text-center block"
+          style={{ background: "#1c1c28", color: "#f0f0f5", border: "1px solid #2a2a3a", textDecoration: "none" }}
+        >
+          Nous contacter
+        </a>
+      ) : (
+        <button
+          onClick={onSelect}
+          disabled={loading}
+          className="w-full py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 disabled:opacity-50"
+          style={plan.popular
+            ? { background: "#4f6ef7", color: "#fff" }
+            : { background: "#1c1c28", color: "#f0f0f5", border: "1px solid #2a2a3a" }}
+        >
+          {loading ? "Chargement..." : "Choisir ce plan"}
+        </button>
+      )}
     </div>
   );
 }

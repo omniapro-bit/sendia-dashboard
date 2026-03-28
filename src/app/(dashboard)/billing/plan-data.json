@@ -6,8 +6,11 @@
     "popular": false,
     "features": [
       "200 emails/mois",
-      "1 compte email",
-      "5 documents RAG",
+      "Assistant IA WhatsApp",
+      "Composer et modifier des emails",
+      "Documents RAG",
+      "Relances automatiques",
+      "Transcription vocale",
       "Support email"
     ]
   },
@@ -18,27 +21,27 @@
     "popular": true,
     "features": [
       "1 000 emails/mois",
-      "3 comptes email",
-      "30 documents RAG",
-      "Prompts personnalisés par type",
-      "Signature personnalisée",
-      "Calendrier intégré",
+      "Tout Starter +",
+      "Calendrier integre",
+      "Personnalisation IA avancee",
+      "Export CSV",
+      "Signature personnalisee",
       "Support prioritaire"
     ]
   },
   {
     "id": "enterprise",
     "name": "Enterprise",
-    "price": 119,
+    "price": -1,
     "popular": false,
+    "contact": true,
     "features": [
-      "Emails illimités",
-      "10 comptes email",
-      "Documents illimités",
-      "Prompts personnalisés par type",
-      "Signature personnalisée",
-      "Calendrier intégré",
-      "Support dédié + onboarding"
+      "Volume illimite",
+      "Tout Professional +",
+      "Multi-boites email",
+      "Onboarding dedie",
+      "Support et accompagnement premium",
+      "Configuration sur mesure"
     ]
   }
 ]
