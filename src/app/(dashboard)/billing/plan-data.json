@@ -8,7 +8,6 @@
       "200 emails/mois",
       "Assistant IA WhatsApp",
       "Composer et modifier des emails",
-      "Documents RAG",
       "Relances automatiques",
       "Transcription vocale",
       "Support email"
@@ -22,6 +21,7 @@
     "features": [
       "1 000 emails/mois",
       "Tout Starter +",
+      "Documents RAG (30 docs)",
       "Calendrier intégré",
       "Personnalisation IA avancée",
       "Export CSV",
