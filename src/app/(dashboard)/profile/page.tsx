@@ -409,11 +409,11 @@ function ProfileContent() {
         </CardSection>
 
         {/* Section 4: Response settings */}
-        <CardSection title="Param\u00e8tres de r\u00e9ponse">
-          <Select label="Ton par d\u00e9faut" value={form.tone_preference}
+        <CardSection title={"Paramètres de réponse"}>
+          <Select label={"Ton par défaut"} value={form.tone_preference}
             onChange={(e) => setField("tone_preference", e.target.value)} options={TONE_OPTIONS} />
-          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName="Personnalisation avanc\u00e9e">
-            <Select label="Secteur d'activit\u00e9" value={form.industry}
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName={"Personnalisation avancée"}>
+            <Select label={"Secteur d'activité"} value={form.industry}
               onChange={(e) => setField("industry", e.target.value)} options={INDUSTRY_OPTIONS} />
             <Select label="Formule d'ouverture" value={form.greeting_style}
               onChange={(e) => setField("greeting_style", e.target.value)} options={GREETING_OPTIONS} />
@@ -440,11 +440,11 @@ function ProfileContent() {
               Collez votre signature depuis Gmail ou Outlook — les images et la mise en forme sont conservées.
             </p>
           </div>
-          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName="Instructions personnalis\u00e9es">
-            <Textarea label="Contexte personnalis\u00e9" value={form.custom_prompt_context} rows={5}
+          <UpgradeGate allowed={clientPlan ? clientPlan.features.has_custom_prompt : true} featureName={"Instructions personnalisées"}>
+            <Textarea label={"Contexte personnalisé"} value={form.custom_prompt_context} rows={5}
               onChange={(e) => setField("custom_prompt_context", e.target.value)}
-              placeholder="D\u00e9crivez votre activit\u00e9, vos pr\u00e9f\u00e9rences ou toute information utile pour Sendia..."
-              hint="Ces informations aident Sendia \u00e0 mieux comprendre votre contexte m\u00e9tier." />
+              placeholder={"Décrivez votre activité, vos préférences ou toute information utile pour Sendia..."}
+              hint={"Ces informations aident Sendia à mieux comprendre votre contexte métier."} />
           </UpgradeGate>
         </CardSection>
 
