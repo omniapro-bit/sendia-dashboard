@@ -83,7 +83,7 @@ export type RagDocument = {
 };
 
 export type BillingStatus = {
-  status: "trial" | "active" | "expired" | "canceled";
+  status: "trial" | "active" | "expired" | "canceled" | "pending" | "past_due";
   plan: string | null;
   trial_ends_at: string | null;
   current_period_end: string | null;

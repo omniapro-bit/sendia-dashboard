@@ -320,7 +320,7 @@ export default function BillingPage() {
     if (s.status === "active") {
       return <ActiveView status={s} onPortal={handlePortal} loadingPortal={loadingPortal} />;
     }
-    if (s.status === "expired" || s.status === "canceled") {
+    if (s.status === "expired" || s.status === "canceled" || s.status === "pending") {
       return <ExpiredView onSelect={handleSelectPlan} loadingPlan={loadingPlan} />;
     }
     return <TrialView status={s} onSelect={handleSelectPlan} loadingPlan={loadingPlan} />;

@@ -137,15 +137,28 @@ function EmailConnectionSection(props: {
   outlookEmail: string | undefined;
   hrefs: Record<ProviderId, string>;
   onDisconnect?: (provider: "gmail" | "outlook") => void;
+  planActive?: boolean;
 }) {
-  const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs, onDisconnect } = props;
+  const { gmailConnected, outlookConnected, emailLoading, gmailEmail, outlookEmail, hrefs, onDisconnect, planActive = true } = props;
   const anyConnected = gmailConnected || outlookConnected;
+  const needsPayment = !planActive && !anyConnected;
   const borderCls = emailLoading || !anyConnected ? "border-[#4f6ef7]/30" : "border-green-500/30";
 
   return (
     <div className={`bg-[#12121a] border ${borderCls} rounded-2xl p-6 mb-6`}>
       {emailLoading ? (
         <div className="flex justify-center py-4"><Spinner size="md" /></div>
+      ) : needsPayment ? (
+        <div className="text-center py-4">
+          <div className="text-3xl mb-3">🔒</div>
+          <h2 className="text-base font-semibold text-[#f0f0f5] mb-2">Choisissez un plan pour connecter votre email</h2>
+          <p className="text-sm text-[#9999b0] mb-4">
+            {"Activez votre essai gratuit de 14 jours pour commencer à utiliser Sendia."}
+          </p>
+          <a href="/billing" className="inline-block px-5 py-2.5 rounded-xl text-sm font-semibold text-white no-underline" style={{ background: "#4f6ef7" }}>
+            {"Voir les plans"}
+          </a>
+        </div>
       ) : (
         <>
           <h2 className="text-base font-semibold text-[#f0f0f5] mb-1">
@@ -356,6 +369,7 @@ function ProfileContent() {
         outlookEmail={outlookEmail ?? undefined}
         hrefs={hrefs}
         onDisconnect={handleDisconnect}
+        planActive={clientPlan ? (clientPlan.plan_status === "active" || clientPlan.plan_status === "trial") : false}
       />
 
       {/* Section 2: Sendia status toggle */}
