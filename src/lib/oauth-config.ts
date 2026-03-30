@@ -42,7 +42,7 @@ export function buildOAuthUrls(clientId: string) {
         prompt: "consent",
         state,
       }).toString(),
-    outlook: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?" +
+    outlook: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?" +
       new URLSearchParams({
         client_id: OAUTH_CONFIG.outlook.clientId,
         redirect_uri: OAUTH_CONFIG.outlook.redirectUri,
