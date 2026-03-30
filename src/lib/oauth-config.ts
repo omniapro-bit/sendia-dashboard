@@ -19,7 +19,7 @@ export const OAUTH_CONFIG = {
   outlook: {
     clientId: process.env.NEXT_PUBLIC_OUTLOOK_CLIENT_ID || "ead1260f-07d2-4220-b215-e0af081e67fc",
     redirectUri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
-    scopes: "offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
+    scopes: "openid offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
   },
 } as const;
 
