@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
@@ -20,6 +20,132 @@ function formatDate(iso: string | undefined): string {
   return new Date(iso).toLocaleDateString("fr-FR", {
     day: "numeric", month: "long", year: "numeric",
   });
+}
+
+function TwoFactorSection() {
+  const { toast } = useToast();
+  const [mfaEnabled, setMfaEnabled] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [enrolling, setEnrolling] = useState(false);
+  const [qrUri, setQrUri] = useState("");
+  const [factorId, setFactorId] = useState("");
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [unenrolling, setUnenrolling] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.mfa.listFactors().then(({ data }) => {
+      const totp = data?.totp ?? [];
+      const verified = totp.find((f) => f.status === "verified");
+      setMfaEnabled(!!verified);
+      if (verified) setFactorId(verified.id);
+      setLoading(false);
+    });
+  }, []);
+
+  async function handleEnroll() {
+    setEnrolling(true);
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: "Sendia" });
+      if (error) throw error;
+      setQrUri(data.totp.uri);
+      setFactorId(data.id);
+    } catch {
+      toast("Erreur lors de la configuration 2FA.", "error");
+    } finally {
+      setEnrolling(false);
+    }
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    if (verifyCode.length !== 6) return;
+    setVerifying(true);
+    try {
+      const challenge = await supabase.auth.mfa.challenge({ factorId });
+      if (challenge.error) throw challenge.error;
+      const verify = await supabase.auth.mfa.verify({ factorId, challengeId: challenge.data.id, code: verifyCode });
+      if (verify.error) throw verify.error;
+      setMfaEnabled(true);
+      setQrUri("");
+      setVerifyCode("");
+      toast("2FA activ\u00e9e avec succ\u00e8s.", "success");
+    } catch {
+      toast("Code invalide. R\u00e9essayez.", "error");
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  async function handleUnenroll() {
+    setUnenrolling(true);
+    try {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId });
+      if (error) throw error;
+      setMfaEnabled(false);
+      setFactorId("");
+      toast("2FA d\u00e9sactiv\u00e9e.", "success");
+    } catch {
+      toast("Erreur lors de la d\u00e9sactivation.", "error");
+    } finally {
+      setUnenrolling(false);
+    }
+  }
+
+  return (
+    <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
+      <div className="px-6 py-4 border-b border-[#2a2a3a]">
+        <h2 className="text-base font-semibold text-[#f0f0f5]">{"Authentification \u00e0 deux facteurs"}</h2>
+      </div>
+      <div className="px-6 py-5">
+        {loading ? (
+          <p className="text-sm text-[#66667a]">Chargement...</p>
+        ) : mfaEnabled ? (
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#34d399]" />
+                <p className="text-sm font-medium text-[#f0f0f5]">{"2FA activ\u00e9e"}</p>
+              </div>
+              <p className="text-xs text-[#66667a] mt-0.5">{"Votre compte est prot\u00e9g\u00e9 par l'authentification \u00e0 deux facteurs."}</p>
+            </div>
+            <Button variant="danger" size="md" loading={unenrolling} onClick={handleUnenroll}>
+              {"D\u00e9sactiver la 2FA"}
+            </Button>
+          </div>
+        ) : qrUri ? (
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-sm text-[#9999b0] text-center">{"Scannez ce QR code avec Google Authenticator, Authy ou toute application TOTP."}</p>
+            <div className="bg-white p-4 rounded-xl">
+              <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUri)}`} alt="QR Code 2FA" width={200} height={200} />
+            </div>
+            <form onSubmit={handleVerify} className="flex items-center gap-3 mt-2">
+              <Input
+                label=""
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Code à 6 chiffres"
+                autoComplete="one-time-code"
+              />
+              <Button type="submit" loading={verifying} size="md" disabled={verifyCode.length !== 6}>
+                Activer
+              </Button>
+            </form>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm font-medium text-[#f0f0f5]">{"Double authentification (2FA)"}</p>
+              <p className="text-xs text-[#66667a] mt-0.5">{"Ajoutez une couche de s\u00e9curit\u00e9 suppl\u00e9mentaire \u00e0 votre compte."}</p>
+            </div>
+            <Button variant="secondary" size="md" loading={enrolling} onClick={handleEnroll}>
+              Configurer la 2FA
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function SettingsPage() {
@@ -143,18 +269,7 @@ export default function SettingsPage() {
       </form>
 
       {/* 2FA */}
-      <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
-        <div className="px-6 py-4 border-b border-[#2a2a3a]">
-          <h2 className="text-base font-semibold text-[#f0f0f5]">Authentification à deux facteurs</h2>
-        </div>
-        <div className="px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <p className="text-sm font-medium text-[#f0f0f5]">Double authentification (2FA)</p>
-            <p className="text-xs text-[#66667a] mt-0.5">Ajoutez une couche de sécurité supplémentaire à votre compte.</p>
-          </div>
-          <span className="text-xs font-medium text-[#66667a] bg-[#1c1c28] border border-[#2a2a3a] px-3 py-1.5 rounded-lg">Bientôt disponible</span>
-        </div>
-      </div>
+      <TwoFactorSection />
 
       {/* Export */}
       <div className="bg-[#16161f] border border-[#2a2a3a] rounded-2xl overflow-hidden mb-6">
