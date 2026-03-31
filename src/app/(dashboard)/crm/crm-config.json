@@ -1,0 +1,55 @@
+{
+  "tabs": [
+    { "id": "contacts", "label": "Contacts" },
+    { "id": "deals", "label": "Deals" },
+    { "id": "timeline", "label": "Timeline" }
+  ],
+  "tagColors": {
+    "CLIENT": "blue",
+    "FOURNISSEUR": "purple",
+    "PARTENAIRE": "teal",
+    "ASSURANCE": "orange",
+    "ADMINISTRATION": "yellow",
+    "PROSPECT": "green",
+    "INCONNU": "gray"
+  },
+  "stageLabels": {
+    "nouveau": "Nouveau",
+    "devis_envoye": "Devis envoy\u00e9",
+    "devis_recu": "Devis re\u00e7u",
+    "en_cours": "En cours",
+    "gagne": "Gagn\u00e9",
+    "perdu": "Perdu"
+  },
+  "stageColors": {
+    "nouveau": "blue",
+    "devis_envoye": "purple",
+    "devis_recu": "orange",
+    "en_cours": "teal",
+    "gagne": "green",
+    "perdu": "red"
+  },
+  "intentionLabels": {
+    "DEVIS": "Devis",
+    "COMMANDE": "Commande",
+    "RELANCE": "Relance",
+    "QUESTION": "Question",
+    "INFORMATION": "Info",
+    "CONFIRMATION": "Confirmation",
+    "URGENT": "Urgent",
+    "AUTRE": "Autre"
+  },
+  "statCards": [
+    { "key": "contacts_total", "label": "Contacts", "color": "#6b85ff" },
+    { "key": "deals_open", "label": "Deals ouverts", "color": "#a78bfa" },
+    { "key": "won_amount", "label": "Gagn\u00e9s (\u20ac)", "color": "#34d399" },
+    { "key": "interactions_7d", "label": "Interactions 7j", "color": "#fb923c" }
+  ],
+  "kanbanStages": ["nouveau", "devis_envoye", "devis_recu", "en_cours"],
+  "tagFilterOptions": ["ALL", "CLIENT", "FOURNISSEUR", "PARTENAIRE", "PROSPECT", "INCONNU"],
+  "emptyMessages": {
+    "contacts": "Aucun contact pour l'instant. Les contacts seront cr\u00e9\u00e9s automatiquement quand Sendia traitera vos emails.",
+    "deals": "Aucun deal pour l'instant. Les deals seront cr\u00e9\u00e9s automatiquement \u00e0 la r\u00e9ception de devis ou commandes.",
+    "timeline": "Aucune interaction r\u00e9cente."
+  }
+}
