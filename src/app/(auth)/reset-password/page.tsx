@@ -22,35 +22,35 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) { toast("Les mots de passe ne correspondent pas", "error"); return; }
-    if (password.length < 8) { toast("Minimum 8 caracteres requis", "error"); return; }
+    if (password.length < 8) { toast("Minimum 8 caractères requis", "error"); return; }
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      toast("Mot de passe mis a jour avec succes !", "success");
+      toast("Mot de passe mis à jour avec succès !", "success");
       router.push("/login");
     } catch (err: unknown) {
-      toast(err instanceof Error ? err.message : "Erreur lors de la mise a jour", "error");
+      toast(err instanceof Error ? err.message : "Erreur lors de la mise à jour", "error");
     } finally {
       setLoading(false);
     }
   }
   return (
-    <AuthCard title="Nouveau mot de passe" subtitle="Choisissez un nouveau mot de passe securise.">
+    <AuthCard title="Nouveau mot de passe" subtitle={"Choisissez un nouveau mot de passe sécurisé."}>
       {!ready && (
         <p className="text-sm mb-4" style={{ color: "#fb923c" }}>
-          Lien de reinitialisation en cours de verification...
+          {"Lien de réinitialisation en cours de vérification..."}
         </p>
       )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-[18px]">
         <Input label="Nouveau mot de passe" type="password" value={password}
           onChange={e => setPassword(e.target.value)}
-          placeholder="••••••••" required disabled={!ready} hint="Minimum 8 caracteres" />
+          placeholder="••••••••" required disabled={!ready} hint={"Minimum 8 caractères"} />
         <Input label="Confirmer le mot de passe" type="password" value={confirm}
           onChange={e => setConfirm(e.target.value)}
           placeholder="••••••••" required disabled={!ready} />
         <Button type="submit" loading={loading} disabled={!ready} size="lg" className="w-full">
-          Mettre a jour
+          {"Mettre à jour"}
         </Button>
       </form>
     </AuthCard>
