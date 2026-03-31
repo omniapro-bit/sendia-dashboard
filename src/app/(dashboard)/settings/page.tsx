@@ -115,7 +115,7 @@ function TwoFactorSection() {
           </div>
         ) : qrUri ? (
           <div className="flex flex-col items-center gap-4">
-            <p className="text-sm text-[#9999b0] text-center">{"Scannez ce QR code avec Google Authenticator, Authy ou toute application TOTP."}</p>
+            <p className="text-sm text-[#9999b0] text-center">{"Ouvrez Google Authenticator ou Microsoft Authenticator, appuyez sur \"+\" puis \"Scanner un QR code\"."}</p>
             <div className="bg-white p-4 rounded-xl">
               <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUri)}`} alt="QR Code 2FA" width={200} height={200} />
             </div>
