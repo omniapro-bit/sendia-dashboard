@@ -1,8 +1,9 @@
 {
   "tabs": [
-    { "id": "contacts", "label": "Contacts" },
-    { "id": "deals", "label": "Deals" },
-    { "id": "timeline", "label": "Timeline" }
+    { "id": "overview", "label": "Vue d'ensemble", "icon": "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+    { "id": "contacts", "label": "Contacts", "icon": "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+    { "id": "pipeline", "label": "Pipeline", "icon": "M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" },
+    { "id": "timeline", "label": "Historique", "icon": "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" }
   ],
   "tagColors": {
     "CLIENT": "blue",
@@ -18,8 +19,8 @@
     "devis_envoye": "Devis envoy\u00e9",
     "devis_recu": "Devis re\u00e7u",
     "en_cours": "En cours",
-    "gagne": "Gagn\u00e9",
-    "perdu": "Perdu"
+    "gagne": "Termin\u00e9",
+    "perdu": "Annul\u00e9"
   },
   "stageColors": {
     "nouveau": "blue",
@@ -29,27 +30,13 @@
     "gagne": "green",
     "perdu": "red"
   },
-  "intentionLabels": {
-    "DEVIS": "Devis",
-    "COMMANDE": "Commande",
-    "RELANCE": "Relance",
-    "QUESTION": "Question",
-    "INFORMATION": "Info",
-    "CONFIRMATION": "Confirmation",
-    "URGENT": "Urgent",
-    "AUTRE": "Autre"
-  },
-  "statCards": [
-    { "key": "contacts_total", "label": "Contacts", "color": "#6b85ff" },
-    { "key": "deals_open", "label": "Deals ouverts", "color": "#a78bfa" },
-    { "key": "won_amount", "label": "Gagn\u00e9s (\u20ac)", "color": "#34d399" },
-    { "key": "interactions_7d", "label": "Interactions 7j", "color": "#fb923c" }
-  ],
   "kanbanStages": ["nouveau", "devis_envoye", "devis_recu", "en_cours"],
   "tagFilterOptions": ["ALL", "CLIENT", "FOURNISSEUR", "PARTENAIRE", "PROSPECT", "INCONNU"],
-  "emptyMessages": {
-    "contacts": "Aucun contact pour l'instant. Les contacts seront cr\u00e9\u00e9s automatiquement quand Sendia traitera vos emails.",
-    "deals": "Aucun deal pour l'instant. Les deals seront cr\u00e9\u00e9s automatiquement \u00e0 la r\u00e9ception de devis ou commandes.",
-    "timeline": "Aucune interaction r\u00e9cente."
+  "directionLabels": { "inbound": "Re\u00e7u", "outbound": "Envoy\u00e9" },
+  "emptyStates": {
+    "contacts": "Les contacts apparaitront automatiquement quand Sendia traitera vos emails.",
+    "pipeline": "Les opportunit\u00e9s seront cr\u00e9\u00e9es automatiquement lors de la r\u00e9ception de devis ou commandes.",
+    "timeline": "L'historique de vos \u00e9changes appara\u00eetra ici.",
+    "overview": "Votre CRM se remplit automatiquement. Envoyez et recevez des emails pour commencer."
   }
 }
