@@ -134,12 +134,29 @@ function ContactsList({ contacts, onSelect }: { contacts: CrmContact[]; onSelect
 }
 
 // ─── Contact detail (modal) ──────────────────────────────────
-function ContactDetail({ contact, onClose }: { contact: CrmContact; onClose: () => void }) {
+function ContactDetail({ contact, onClose, onUpdate }: { contact: CrmContact; onClose: () => void; onUpdate: () => void }) {
   const [data, setData] = useState<{ interactions: CrmInteraction[]; deals: CrmDeal[] } | null>(null);
+  const [editTag, setEditTag] = useState(false);
+  const [editNotes, setEditNotes] = useState(false);
+  const [editCompany, setEditCompany] = useState(false);
+  const [tag, setTag] = useState(contact.tag);
+  const [notes, setNotes] = useState(contact.notes);
+  const [company, setCompany] = useState(contact.company_name || domainFrom(contact.email));
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   useEffect(() => {
     crmApi.getContact(contact.id).then(d => setData(d)).catch(() => toast("Erreur chargement", "error"));
   }, [contact.id, toast]);
+  const allTags = (cfg.allTags) as string[];
+  async function saveField(field: string, value: string) {
+    setSaving(true);
+    try {
+      await crmApi.updateContact(contact.id, { [field]: value });
+      toast("Contact mis \u00e0 jour", "success");
+      onUpdate();
+    } catch { toast("Erreur", "error"); }
+    finally { setSaving(false); setEditTag(false); setEditNotes(false); setEditCompany(false); }
+  }
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[5vh] bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#12121a] border border-[#2a2a3a] rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto m-4" onClick={e => e.stopPropagation()}>
@@ -150,38 +167,79 @@ function ContactDetail({ contact, onClose }: { contact: CrmContact; onClose: () 
             <div>
               <h2 className="text-lg font-bold text-[#f0f0f5]">{contact.display_name || contact.email}</h2>
               <p className="text-sm text-[#66667a]">{contact.email}</p>
-              {contact.company_name && <p className="text-xs text-[#9999b0]">{contact.company_name}</p>}
+              {/* Editable company */}
+              {editCompany ? (
+                <div className="flex items-center gap-1 mt-1">
+                  <input value={company} onChange={e => setCompany(e.target.value)} className="text-xs px-2 py-1 rounded bg-[#1c1c28] border border-[#333348] text-[#f0f0f5] w-40" autoFocus />
+                  <button onClick={() => saveField("company_name", company)} disabled={saving} className="text-[10px] px-2 py-1 rounded bg-[#4f6ef7] text-white">OK</button>
+                  <button onClick={() => setEditCompany(false)} className="text-[10px] px-2 py-1 text-[#66667a]">&times;</button>
+                </div>
+              ) : (
+                <p className="text-xs text-[#9999b0] cursor-pointer hover:text-[#f0f0f5] mt-0.5" onClick={() => setEditCompany(true)}>
+                  {contact.company_name || domainFrom(contact.email)} <span className="text-[#444]">&#9998;</span>
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={TAG_COLORS[contact.tag] ?? "gray"}>{contact.tag}</Badge>
+            {/* Editable tag */}
+            {editTag ? (
+              <div className="flex flex-wrap gap-1">
+                {allTags.map(t => (
+                  <button key={t} onClick={() => { setTag(t); saveField("tag", t); }} className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${t === tag ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.2)] text-[#6b85ff]" : "border-[#333348] text-[#9999b0] hover:text-[#f0f0f5]"}`}>{t}</button>
+                ))}
+              </div>
+            ) : (
+              <button onClick={() => setEditTag(true)}><Badge variant={TAG_COLORS[tag] ?? "gray"}>{tag} &#9998;</Badge></button>
+            )}
             <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#66667a] hover:text-[#f0f0f5] hover:bg-[#1c1c28] transition-colors">&times;</button>
           </div>
         </div>
-        {/* Infos rapides */}
-        <div className="px-5 py-3 grid grid-cols-3 gap-4 border-b border-[#1c1c28] text-sm">
-          <div><span className="text-[#66667a] text-xs block">Emails</span><span className="text-[#f0f0f5] font-medium">{contact.email_count}</span></div>
-          <div><span className="text-[#66667a] text-xs block">Premier contact</span><span className="text-[#f0f0f5]">{new Date(contact.first_seen_at).toLocaleDateString("fr-FR")}</span></div>
-          <div><span className="text-[#66667a] text-xs block">Dernier contact</span><span className="text-[#f0f0f5]">{relative(contact.last_seen_at)}</span></div>
+        {/* Stats rapides */}
+        <div className="px-5 py-3 grid grid-cols-4 gap-3 border-b border-[#1c1c28] text-sm">
+          <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Emails</span><span className="text-[#f0f0f5] font-semibold">{contact.email_count}</span></div>
+          <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Premier contact</span><span className="text-[#f0f0f5]">{new Date(contact.first_seen_at).toLocaleDateString("fr-FR")}</span></div>
+          <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Dernier contact</span><span className="text-[#f0f0f5]">{relative(contact.last_seen_at)}</span></div>
+          <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Deals ouverts</span><span className="text-[#a78bfa] font-semibold">{contact.open_deals || 0}</span></div>
         </div>
-        {contact.phone && <div className="px-5 py-2 text-sm text-[#9999b0] border-b border-[#1c1c28]">Tel : {contact.phone}</div>}
-        {contact.notes && <div className="px-5 py-2 text-sm text-[#9999b0] italic border-b border-[#1c1c28]">{contact.notes}</div>}
+        {contact.phone && <div className="px-5 py-2 text-sm text-[#9999b0] border-b border-[#1c1c28]">T&eacute;l : {contact.phone}</div>}
+        {/* Editable notes */}
+        <div className="px-5 py-3 border-b border-[#1c1c28]">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] uppercase tracking-wider text-[#66667a]">Notes</span>
+            {!editNotes && <button onClick={() => setEditNotes(true)} className="text-[10px] text-[#4f6ef7] hover:text-[#6b85ff]">{notes ? "Modifier" : "Ajouter une note"}</button>}
+          </div>
+          {editNotes ? (
+            <div>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg bg-[#1c1c28] border border-[#333348] text-[#f0f0f5] text-sm placeholder:text-[#66667a] focus:outline-none focus:border-[#4f6ef7] resize-none" placeholder="Notes sur ce contact..." autoFocus />
+              <div className="flex gap-2 mt-1">
+                <button onClick={() => saveField("notes", notes)} disabled={saving} className="text-xs px-3 py-1 rounded-lg bg-[#4f6ef7] text-white hover:bg-[#3d5bd9] transition-colors">Enregistrer</button>
+                <button onClick={() => { setEditNotes(false); setNotes(contact.notes); }} className="text-xs px-3 py-1 text-[#66667a]">Annuler</button>
+              </div>
+            </div>
+          ) : (
+            notes ? <p className="text-sm text-[#9999b0] italic">{notes}</p> : <p className="text-xs text-[#444]">Aucune note</p>
+          )}
+        </div>
         {/* Contenu */}
         <div className="p-5">
           {data ? (
             <>
               {data.deals.length > 0 && (
                 <div className="mb-5">
-                  <h3 className="text-xs uppercase tracking-wider text-[#66667a] mb-2">{"Opportunit\u00e9s"}</h3>
+                  <h3 className="text-[10px] uppercase tracking-wider text-[#66667a] mb-2">Opportunit&eacute;s ({data.deals.length})</h3>
                   {data.deals.map(d => (
                     <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-[#1c1c28] mb-1.5">
-                      <span className="text-sm text-[#f0f0f5]">{d.title}</span>
+                      <div>
+                        <span className="text-sm text-[#f0f0f5]">{d.title}</span>
+                        {d.amount && <span className="text-xs text-[#34d399] ml-2">{Number(d.amount).toLocaleString("fr-FR")}&nbsp;&euro;</span>}
+                      </div>
                       <Badge variant={STAGE_COLORS[d.stage] ?? "gray"}>{STAGE_LABELS[d.stage] ?? d.stage}</Badge>
                     </div>
                   ))}
                 </div>
               )}
-              <h3 className="text-xs uppercase tracking-wider text-[#66667a] mb-2">Historique des {"\u00e9changes"} ({data.interactions.length})</h3>
+              <h3 className="text-[10px] uppercase tracking-wider text-[#66667a] mb-2">Historique ({data.interactions.length})</h3>
               <div className="space-y-1.5 max-h-72 overflow-y-auto">
                 {data.interactions.map(ix => (
                   <div key={ix.id} className="flex items-start gap-3 p-3 rounded-lg bg-[#1c1c28]">
@@ -197,7 +255,7 @@ function ContactDetail({ contact, onClose }: { contact: CrmContact; onClose: () 
                     </div>
                   </div>
                 ))}
-                {!data.interactions.length && <p className="text-xs text-[#66667a] text-center py-4">Aucun {"\u00e9change"}</p>}
+                {!data.interactions.length && <p className="text-xs text-[#66667a] text-center py-4">Aucun &eacute;change</p>}
               </div>
             </>
           ) : (
@@ -355,7 +413,7 @@ export default function CrmPage() {
       {tab === "contacts" && <ContactsList contacts={contacts} onSelect={setSelected} />}
       {tab === "pipeline" && <Pipeline deals={deals} onMove={moveDeal} />}
       {tab === "timeline" && <TimelineView interactions={interactions} />}
-      {selected && <ContactDetail contact={selected} onClose={() => setSelected(null)} />}
+      {selected && <ContactDetail contact={selected} onClose={() => setSelected(null)} onUpdate={() => { load(); setSelected(null); }} />}
     </div>
   );
 }

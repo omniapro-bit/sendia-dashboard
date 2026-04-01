@@ -31,6 +31,7 @@
     "perdu": "red"
   },
   "kanbanStages": ["nouveau", "devis_envoye", "devis_recu", "en_cours"],
+  "allTags": ["CLIENT", "FOURNISSEUR", "PARTENAIRE", "PROSPECT", "ASSURANCE", "ADMINISTRATION", "INCONNU"],
   "tagFilterOptions": ["ALL", "CLIENT", "FOURNISSEUR", "PARTENAIRE", "PROSPECT", "INCONNU"],
   "directionLabels": { "inbound": "Re\u00e7u", "outbound": "Envoy\u00e9" },
   "emptyStates": {
