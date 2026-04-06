@@ -6,6 +6,8 @@ WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 RUN npm ci
 COPY . .
+# Copy .env.prod as .env so NEXT_PUBLIC_* vars are available at build time
+RUN if [ -f .env.prod ]; then cp .env.prod .env; fi
 RUN npm run build
 
 # Stage 2: Runner (production-only)
