@@ -302,7 +302,7 @@ export default function CrmPage() {
         crmApi.getInteractions({ limit: 50 }),
       ]);
       setStats(s); setContacts(c.contacts); setInteractions(i.interactions);
-    } catch (err: any) { toast(err.message || "Erreur CRM", "error"); }
+    } catch (err: unknown) { toast(err instanceof Error ? err.message : "Erreur CRM", "error"); }
     finally { setLoading(false); }
   }, [debouncedSearch, tagFilter, toast]);
   useEffect(() => { load(); }, [load]);

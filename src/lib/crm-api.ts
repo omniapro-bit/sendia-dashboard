@@ -4,13 +4,38 @@ const CRM_BASE = process.env.NEXT_PUBLIC_API_BASE
   ? `${process.env.NEXT_PUBLIC_API_BASE}/api/crm`
   : "https://api.getsendia.com/api/crm";
 
-async function crmFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
+async function resolveToken(): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.access_token) throw new Error("No active session");
+  return session.access_token;
+}
+
+async function signOutAndRedirect(): Promise<never> {
+  await supabase.auth.signOut();
+  if (typeof window !== "undefined") window.location.href = "/login";
+  throw new Error("Session expired");
+}
+
+async function crmFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  const token = await resolveToken();
   const res = await fetch(`${CRM_BASE}${path}`, {
     ...opts,
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}`, ...(opts.headers ?? {}) },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(opts.headers ?? {}) },
   });
+  if (res.status === 401) {
+    // Try refreshing the session before giving up
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshData?.session && !refreshError) {
+      // Retry with the new token
+      const retryRes = await fetch(`${CRM_BASE}${path}`, {
+        ...opts,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${refreshData.session.access_token}`, ...(opts.headers ?? {}) },
+      });
+      if (retryRes.ok) return retryRes.json() as Promise<T>;
+    }
+    // Refresh failed or retry still 401 — sign out
+    return signOutAndRedirect();
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? `CRM request failed: ${res.status}`);

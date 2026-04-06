@@ -289,11 +289,11 @@ export default function DashboardPage() {
     setLoadingCharts(true);
     api.getAdvancedStats(period)
       .then(setAdvancedStats)
-      .catch(() => setAdvancedStats(null))
+      .catch((err) => { console.error("[DashboardPage]", err); setAdvancedStats(null); })
       .finally(() => setLoadingCharts(false));
   }, [period]);
-  useEffect(() => { api.getOnboardingStatus().then(s => setEmailConnected(s.email_connected)).catch(() => {}); }, []);
-  useEffect(() => { api.getClientPlan().then(setClientPlan).catch(() => {}); }, []);
+  useEffect(() => { api.getOnboardingStatus().then(s => setEmailConnected(s.email_connected)).catch((err) => console.error("[DashboardPage]", err)); }, []);
+  useEffect(() => { api.getClientPlan().then(setClientPlan).catch((err) => console.error("[DashboardPage]", err)); }, []);
 
   const handleExportCSV = useCallback(async () => {
     setExporting(true);

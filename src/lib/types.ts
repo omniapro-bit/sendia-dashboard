@@ -17,6 +17,7 @@ export interface ClientProfile {
   feature_rag_enabled: boolean;
   whatsapp_number?: string;
   email_provider?: string;
+  industry?: string;
   prompt_devis?: string;
   prompt_lead?: string;
   prompt_support?: string;

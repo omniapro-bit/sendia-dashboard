@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (s?.status === "expired" || s?.status === "canceled" || s?.status === "pending") {
           router.replace("/billing");
         }
-      }).catch(() => {});
+      }).catch((err) => console.error("[DashboardLayout]", err));
     }
   }, [user, loading, router, pathname]);
   if (loading) {

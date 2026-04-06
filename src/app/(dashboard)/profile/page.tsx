@@ -232,7 +232,7 @@ function profileToForm(p: ProfileInput): FormState {
     whatsapp_number: p.whatsapp_number ?? "",
     signature: p.signature ?? "",
     tone_preference: p.tone_preference ?? DEFAULT_TONE,
-    industry: (p as any).industry ?? DEFAULT_INDUSTRY,
+    industry: p.industry ?? DEFAULT_INDUSTRY,
     greeting_style: p.greeting_style ?? "",
     custom_prompt_context: p.custom_prompt_context ?? "",
     is_active: p.is_active ?? false,
