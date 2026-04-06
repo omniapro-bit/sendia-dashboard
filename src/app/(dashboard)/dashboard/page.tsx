@@ -81,11 +81,11 @@ function computeResponseRate(s: ClientStats): number {
 // Rate banner — shows response rate with color coding.
 function RateBanner({ rate }: { stats: ClientStats; rate: number }) {
   const color = rate >= 70 ? "#22c55e" : rate >= 40 ? "#f59e0b" : "#ef4444";
-  const label = rate >= 70 ? "Excellent" : rate >= 40 ? "Correct" : "A ameliorer";
+  const label = rate >= 70 ? "Excellent" : rate >= 40 ? "Correct" : "À améliorer";
   return (
     <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "12px 20px", marginBottom: 16 }}
       className="flex items-center justify-between">
-      <span className="text-sm text-[#9999b0]">Taux de reponse ce mois</span>
+      <span className="text-sm text-[#9999b0]">Taux de réponse ce mois</span>
       <div className="flex items-center gap-3">
         <span className="text-sm font-medium" style={{ color }}>{label}</span>
         <span className="text-xl font-bold" style={{ color }}>{rate}%</span>
@@ -163,11 +163,11 @@ function BusinessStatCards({ stats, advanced, loadingAdvanced }: { stats: Client
   return (
     <div className="grid grid-cols-2 gap-4 mb-6" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
       <div style={{ background: `linear-gradient(135deg, ${rateClr}0a, #16161f 60%)`, border: "1px solid #2a2a3a", borderTop: `2px solid ${rateClr}`, borderRadius: 16, padding: "20px 22px" }}>
-        <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Taux de reponse</p>
+        <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Taux de réponse</p>
         <p style={{ fontSize: "1.85rem", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1, color: rateClr }}>{rateStr}</p>
         <p style={{ fontSize: "0.72rem", color: "#555568", marginTop: 6 }}>{stats.month.sent} envoyés / {stats.month.sent + (advanced ? Math.round(advanced.response_rate > 0 ? stats.month.sent / (advanced.response_rate / 100) - stats.month.sent : 0) : 0)} reçus</p>
       </div>
-      <StatCard label="Temps de reponse moyen" value={respTime} color="purple" subtitle="par thread email" />
+      <StatCard label="Temps de réponse moyen" value={respTime} color="purple" subtitle="par thread email" />
       <StatCard label="Emails ce mois" value={stats.month.processed} color="blue" subtitle={`+${stats.today.processed} aujourd'hui`} />
       <div style={{ background: "linear-gradient(135deg, rgba(79,110,247,0.06), #16161f 60%)", border: "1px solid #2a2a3a", borderTop: "2px solid #4f6ef7", borderRadius: 16, padding: "20px 22px" }}>
         <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Contacts actifs</p>
@@ -338,17 +338,12 @@ export default function DashboardPage() {
         <div className="flex justify-center py-12"><Spinner size="lg" /></div>
       ) : (
         <div style={{ opacity: (onboardingComplete || (stats && stats.month.processed > 0)) ? 1 : 0.4, pointerEvents: (onboardingComplete || (stats && stats.month.processed > 0)) ? "auto" : "none", transition: "opacity 0.3s" }}>
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <StatCard label="Aujourd'hui"    value={stats?.today.processed ?? 0} color="blue" />
-            <StatCard label="Cette semaine"  value={stats?.week.processed  ?? 0} color="purple" />
-            <StatCard label="Ce mois"        value={stats?.month.processed ?? 0} color="blue" />
-            <StatCard label="Envoyés / mois" value={stats?.month.sent      ?? 0} color="green" />
-            <StatCard label="Rejetés / mois" value={stats?.month.rejected  ?? 0} color="red" />
-          </div>
-          {stats && stats.month.processed > 0 && derived.responseRate && (
+          {stats && <BusinessStatCards stats={stats} advanced={advancedStats} loadingAdvanced={loadingCharts} />}
+          {stats && stats.month.processed > 0 && derived.responseRate != null && (
             <RateBanner stats={stats} rate={derived.responseRate} />
           )}
           <StatsCharts data={advancedStats} loading={loadingCharts} />
+          {advancedStats?.top_contacts && <TopContacts contacts={advancedStats.top_contacts} />}
           {derived.categoryCounters.length > 0 && (
             <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "16px 20px", marginBottom: 24 }}>
               <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-3">Répartition par catégorie</p>
