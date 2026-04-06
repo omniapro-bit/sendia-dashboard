@@ -11,6 +11,8 @@ import type {
   ActivityResponse,
   ClientPlan,
 } from "./types";
+// TopContact is re-exported for consumers that import from api.ts
+export type { TopContact } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
   ? `${process.env.NEXT_PUBLIC_API_BASE}/api/client`

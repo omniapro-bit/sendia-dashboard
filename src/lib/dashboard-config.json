@@ -48,5 +48,17 @@
   "chartLabelStyle": {
     "fontSize": "0.75rem",
     "color": "#66667a"
+  },
+  "categoryTypeLabels": {
+    "devis":    "Devis",
+    "lead":     "Prospects",
+    "support":  "Support",
+    "facture":  "Facture",
+    "relance":  "Relance",
+    "urgent":   "Urgent",
+    "commande": "Commande",
+    "general":  "Général",
+    "question": "Question",
+    "suivi":    "Suivi"
   }
 }

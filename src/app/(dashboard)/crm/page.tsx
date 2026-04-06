@@ -5,15 +5,12 @@ import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { useToast } from "@/components/ui/Toast";
 import { crmApi } from "@/lib/crm-api";
-import type { CrmContact, CrmDeal, CrmInteraction, CrmStats } from "@/lib/crm-api";
+import type { CrmContact, CrmInteraction, CrmStats } from "@/lib/crm-api";
 import cfg from "./crm-config.json";
 
 type BadgeVariant = "green" | "red" | "orange" | "purple" | "blue" | "yellow" | "teal" | "gray";
 const TAG_COLORS = (cfg.tagColors) as Record<string, BadgeVariant>;
-const STAGE_LABELS = (cfg.stageLabels) as Record<string, string>;
-const STAGE_COLORS = (cfg.stageColors) as Record<string, BadgeVariant>;
 const TABS = (cfg.tabs) as { id: string; label: string; icon: string }[];
-const K_STAGES = (cfg.kanbanStages) as string[];
 const TAG_OPTS = (cfg.tagFilterOptions) as string[];
 const EMPTY = (cfg.emptyStates) as Record<string, string>;
 const DIR = (cfg.directionLabels) as Record<string, string>;
@@ -38,35 +35,17 @@ function TabIcon({ d }: { d: string }) {
 }
 
 // ─── Vue d'ensemble ──────────────────────────────────────────
-function Overview({ stats, contacts, deals, interactions }: { stats: CrmStats | null; contacts: CrmContact[]; deals: CrmDeal[]; interactions: CrmInteraction[] }) {
+function Overview({ stats, contacts, interactions }: { stats: CrmStats | null; contacts: CrmContact[]; interactions: CrmInteraction[] }) {
   if (!stats) return null;
   const recentContacts = contacts.slice(0, 5);
-  const activePipeline = deals.filter(d => !["gagne", "perdu"].includes(d.stage));
-  const coldDeals = activePipeline.filter(d => {
-    const age = Date.now() - new Date(d.updated_at).getTime();
-    return age > 7 * 86400000;
-  });
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <Card padding="sm"><p className="text-[11px] uppercase tracking-wider text-[#66667a] mb-1">Contacts</p><p className="text-2xl font-bold text-[#f0f0f5]">{stats.contacts.total}</p></Card>
-        <Card padding="sm"><p className="text-[11px] uppercase tracking-wider text-[#66667a] mb-1">Pipeline actif</p><p className="text-2xl font-bold text-[#a78bfa]">{stats.deals.open}</p></Card>
         <Card padding="sm"><p className="text-[11px] uppercase tracking-wider text-[#66667a] mb-1">Interactions (7j)</p><p className="text-2xl font-bold text-[#6b85ff]">{stats.interactions_7d}</p></Card>
         <Card padding="sm"><p className="text-[11px] uppercase tracking-wider text-[#66667a] mb-1">Contacts par tag</p><div className="flex flex-wrap gap-1 mt-1">{Object.entries(stats.contacts.by_tag).map(([t, n]) => <Badge key={t} variant={TAG_COLORS[t] ?? "gray"}>{t} {n}</Badge>)}</div></Card>
       </div>
-      {/* Alertes */}
-      {coldDeals.length > 0 && (
-        <Card padding="sm" className="border-[rgba(251,146,60,0.3)]">
-          <p className="text-sm font-semibold text-[#fb923c] mb-2">{"Opportunit\u00e9s sans activit\u00e9 depuis 7+ jours"}</p>
-          {coldDeals.slice(0, 3).map(d => (
-            <div key={d.id} className="flex items-center justify-between py-1.5 text-sm">
-              <span className="text-[#f0f0f5]">{d.title}</span>
-              <span className="text-xs text-[#66667a]">{d.contact_name} &middot; {relative(d.updated_at)}</span>
-            </div>
-          ))}
-        </Card>
-      )}
       {/* Derniers contacts + activit\u00e9 */}
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
@@ -135,7 +114,7 @@ function ContactsList({ contacts, onSelect }: { contacts: CrmContact[]; onSelect
 
 // ─── Contact detail (modal) ──────────────────────────────────
 function ContactDetail({ contact, onClose, onUpdate }: { contact: CrmContact; onClose: () => void; onUpdate: () => void }) {
-  const [data, setData] = useState<{ interactions: CrmInteraction[]; deals: CrmDeal[] } | null>(null);
+  const [data, setData] = useState<{ interactions: CrmInteraction[] } | null>(null);
   const [editTag, setEditTag] = useState(false);
   const [editNotes, setEditNotes] = useState(false);
   const [editCompany, setEditCompany] = useState(false);
@@ -196,11 +175,10 @@ function ContactDetail({ contact, onClose, onUpdate }: { contact: CrmContact; on
           </div>
         </div>
         {/* Stats rapides */}
-        <div className="px-5 py-3 grid grid-cols-4 gap-3 border-b border-[#1c1c28] text-sm">
+        <div className="px-5 py-3 grid grid-cols-3 gap-3 border-b border-[#1c1c28] text-sm">
           <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Emails</span><span className="text-[#f0f0f5] font-semibold">{contact.email_count}</span></div>
           <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Premier contact</span><span className="text-[#f0f0f5]">{new Date(contact.first_seen_at).toLocaleDateString("fr-FR")}</span></div>
           <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Dernier contact</span><span className="text-[#f0f0f5]">{relative(contact.last_seen_at)}</span></div>
-          <div><span className="text-[#66667a] text-[10px] block uppercase tracking-wider">Deals ouverts</span><span className="text-[#a78bfa] font-semibold">{contact.open_deals || 0}</span></div>
         </div>
         {contact.phone && <div className="px-5 py-2 text-sm text-[#9999b0] border-b border-[#1c1c28]">T&eacute;l : {contact.phone}</div>}
         {/* Editable notes */}
@@ -221,24 +199,10 @@ function ContactDetail({ contact, onClose, onUpdate }: { contact: CrmContact; on
             notes ? <p className="text-sm text-[#9999b0] italic">{notes}</p> : <p className="text-xs text-[#444]">Aucune note</p>
           )}
         </div>
-        {/* Contenu */}
+        {/* Historique */}
         <div className="p-5">
           {data ? (
             <>
-              {data.deals.length > 0 && (
-                <div className="mb-5">
-                  <h3 className="text-[10px] uppercase tracking-wider text-[#66667a] mb-2">Opportunit&eacute;s ({data.deals.length})</h3>
-                  {data.deals.map(d => (
-                    <div key={d.id} className="flex items-center justify-between p-3 rounded-lg bg-[#1c1c28] mb-1.5">
-                      <div>
-                        <span className="text-sm text-[#f0f0f5]">{d.title}</span>
-                        {d.amount && <span className="text-xs text-[#34d399] ml-2">{Number(d.amount).toLocaleString("fr-FR")}&nbsp;&euro;</span>}
-                      </div>
-                      <Badge variant={STAGE_COLORS[d.stage] ?? "gray"}>{STAGE_LABELS[d.stage] ?? d.stage}</Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
               <h3 className="text-[10px] uppercase tracking-wider text-[#66667a] mb-2">Historique ({data.interactions.length})</h3>
               <div className="space-y-1.5 max-h-72 overflow-y-auto">
                 {data.interactions.map(ix => (
@@ -267,47 +231,6 @@ function ContactDetail({ contact, onClose, onUpdate }: { contact: CrmContact; on
   );
 }
 
-// ─── Pipeline kanban ─────────────────────────────────────────
-function Pipeline({ deals, onMove }: { deals: CrmDeal[]; onMove: (id: string, stage: string) => void }) {
-  if (!deals.length) return <EmptyState msg={EMPTY.pipeline} />;
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {K_STAGES.map(stage => {
-        const items = deals.filter(d => d.stage === stage);
-        return (
-          <div key={stage} className="min-h-[200px]">
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#2a2a3a]">
-              <div className="flex items-center gap-2">
-                <Badge variant={STAGE_COLORS[stage] ?? "gray"}>{STAGE_LABELS[stage]}</Badge>
-              </div>
-              <span className="text-xs text-[#66667a] font-medium">{items.length}</span>
-            </div>
-            <div className="space-y-2">
-              {items.map(d => (
-                <div key={d.id} className="p-3 rounded-xl bg-[#16161f] border border-[#2a2a3a] hover:border-[#333348] transition-colors group">
-                  <p className="text-sm font-medium text-[#f0f0f5] mb-1.5 line-clamp-2">{d.title}</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#4f6ef7] to-[#a78bfa] flex items-center justify-center text-[8px] font-bold text-white">{initials(d.contact_name, d.contact_email)}</div>
-                    <span className="text-xs text-[#9999b0] truncate">{d.contact_name || d.contact_email}</span>
-                  </div>
-                  <p className="text-[10px] text-[#66667a]">{relative(d.created_at)}</p>
-                  <div className="flex flex-wrap gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {K_STAGES.filter(s => s !== stage).map(s => (
-                      <button key={s} onClick={() => onMove(d.id, s)} className="text-[10px] px-2 py-0.5 rounded-md bg-[#1c1c28] text-[#9999b0] hover:text-[#f0f0f5] border border-[#333348] transition-colors">&rarr; {STAGE_LABELS[s]}</button>
-                    ))}
-                    <button onClick={() => onMove(d.id, "gagne")} className="text-[10px] px-2 py-0.5 rounded-md bg-[rgba(52,211,153,0.08)] text-[#34d399] border border-[rgba(52,211,153,0.2)]">{"Termin\u00e9"}</button>
-                    <button onClick={() => onMove(d.id, "perdu")} className="text-[10px] px-2 py-0.5 rounded-md bg-[rgba(248,113,113,0.08)] text-[#f87171] border border-[rgba(248,113,113,0.2)]">{"Annul\u00e9"}</button>
-                  </div>
-                </div>
-              ))}
-              {!items.length && <div className="flex items-center justify-center h-24 rounded-xl border border-dashed border-[#2a2a3a] text-xs text-[#444]">Aucune {"opportunit\u00e9"}</div>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 // ─── Timeline ────────────────────────────────────────────────
 function TimelineView({ interactions }: { interactions: CrmInteraction[] }) {
   if (!interactions.length) return <EmptyState msg={EMPTY.timeline} />;
@@ -360,7 +283,6 @@ export default function CrmPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<CrmStats | null>(null);
   const [contacts, setContacts] = useState<CrmContact[]>([]);
-  const [deals, setDeals] = useState<CrmDeal[]>([]);
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
   const [selected, setSelected] = useState<CrmContact | null>(null);
   const [search, setSearch] = useState("");
@@ -374,19 +296,16 @@ export default function CrmPage() {
   }, [search]);
   const load = useCallback(async () => {
     try {
-      const [s, c, d, i] = await Promise.all([
-        crmApi.getStats(), crmApi.getContacts({ search: debouncedSearch || undefined, tag: tagFilter !== "ALL" ? tagFilter : undefined, limit: 100 }),
-        crmApi.getDeals(), crmApi.getInteractions({ limit: 50 }),
+      const [s, c, i] = await Promise.all([
+        crmApi.getStats(),
+        crmApi.getContacts({ search: debouncedSearch || undefined, tag: tagFilter !== "ALL" ? tagFilter : undefined, limit: 100 }),
+        crmApi.getInteractions({ limit: 50 }),
       ]);
-      setStats(s); setContacts(c.contacts); setDeals(d.deals); setInteractions(i.interactions);
+      setStats(s); setContacts(c.contacts); setInteractions(i.interactions);
     } catch (err: any) { toast(err.message || "Erreur CRM", "error"); }
     finally { setLoading(false); }
   }, [debouncedSearch, tagFilter, toast]);
   useEffect(() => { load(); }, [load]);
-  async function moveDeal(id: string, stage: string) {
-    try { await crmApi.updateDeal(id, { stage }); toast(`${STAGE_LABELS[stage] ?? stage}`, "success"); load(); }
-    catch { toast("Erreur", "error"); }
-  }
   if (loading) return <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>;
   return (
     <div className="p-4 md:p-8">
@@ -415,9 +334,8 @@ export default function CrmPage() {
         </div>
       )}
       {/* Tab content */}
-      {tab === "overview" && <Overview stats={stats} contacts={contacts} deals={deals} interactions={interactions} />}
+      {tab === "overview" && <Overview stats={stats} contacts={contacts} interactions={interactions} />}
       {tab === "contacts" && <ContactsList contacts={contacts} onSelect={setSelected} />}
-      {tab === "pipeline" && <Pipeline deals={deals} onMove={moveDeal} />}
       {tab === "timeline" && <TimelineView interactions={interactions} />}
       {selected && <ContactDetail contact={selected} onClose={() => setSelected(null)} onUpdate={() => { load(); setSelected(null); }} />}
     </div>

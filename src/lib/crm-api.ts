@@ -22,14 +22,6 @@ export interface CrmContact {
   id: string; email: string; display_name: string; company_name: string;
   tag: string; phone: string; notes: string; email_count: number;
   last_intention: string; first_seen_at: string; last_seen_at: string;
-  open_deals: string;
-}
-export interface CrmDeal {
-  id: string; contact_id: string; title: string; stage: string;
-  amount: number | null; notes: string; currency: string;
-  contact_name: string; contact_email: string; contact_tag: string;
-  source_email_id: string | null; closed_at: string | null;
-  created_at: string; updated_at: string;
 }
 
 export interface CrmInteraction {
@@ -41,7 +33,6 @@ export interface CrmInteraction {
 
 export interface CrmStats {
   contacts: { total: number; by_tag: Record<string, number> };
-  deals: { open: number; by_stage: Record<string, { count: number; amount: number }>; won_amount: number };
   interactions_7d: number;
 }
 
@@ -57,22 +48,9 @@ export const crmApi = {
     return crmFetch<{ contacts: CrmContact[]; total: number }>(`/contacts${q ? `?${q}` : ""}`);
   },
   getContact: (id: string) =>
-    crmFetch<{ contact: CrmContact; interactions: CrmInteraction[]; deals: CrmDeal[] }>(`/contacts/${id}`),
+    crmFetch<{ contact: CrmContact; interactions: CrmInteraction[] }>(`/contacts/${id}`),
   updateContact: (id: string, body: Partial<Pick<CrmContact, "tag" | "company_name" | "phone" | "notes" | "display_name">>) =>
     crmFetch<CrmContact>(`/contacts/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  getDeals: (params?: { stage?: string; contact_id?: string }) => {
-    const qs = new URLSearchParams();
-    if (params?.stage) qs.set("stage", params.stage);
-    if (params?.contact_id) qs.set("contact_id", params.contact_id);
-    const q = qs.toString();
-    return crmFetch<{ deals: CrmDeal[] }>(`/deals${q ? `?${q}` : ""}`);
-  },
-  createDeal: (body: { contact_id: string; title: string; stage?: string; amount?: number; notes?: string }) =>
-    crmFetch<CrmDeal>("/deals", { method: "POST", body: JSON.stringify(body) }),
-  updateDeal: (id: string, body: Partial<Pick<CrmDeal, "title" | "stage" | "amount" | "notes">>) =>
-    crmFetch<CrmDeal>(`/deals/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deleteDeal: (id: string) =>
-    crmFetch<{ deleted: boolean }>(`/deals/${id}`, { method: "DELETE" }),
   getInteractions: (params?: { contact_id?: string; intention?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.contact_id) qs.set("contact_id", params.contact_id);

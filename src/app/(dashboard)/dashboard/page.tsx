@@ -9,7 +9,7 @@ import { ResponsiveContainer, Legend } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/Toast";
 import { api } from "@/lib/api";
-import type { AdvancedStats, ClientStats, ClientPlan, Email } from "@/lib/types";
+import type { AdvancedStats, ClientStats, ClientPlan, Email, TopContact } from "@/lib/types";
 import { StatCard } from "@/components/StatCard";
 import { EmailTable } from "@/components/EmailTable";
 import { Spinner } from "@/components/ui/Spinner";
@@ -67,15 +67,49 @@ function buildCategoryCounters(emails: Email[]): CategoryCounter[] {
   return result;
 }
 
-function computeResponseRate(stats: ClientStats): string {
-  const total = stats.month.processed;
-  if (total === 0) return "—";
-  return (((stats.month.sent + stats.month.rejected) / total) * 100).toFixed(0) + "%";
-}
-
 // Returns only emails matching both the status and category filters (value "tous" = no filter).
 const applyFilters = (emails: Email[], sf: StatusFilter, cf: CategoryFilter): Email[] =>
   emails.filter(e => (sf === "tous" || e.status === sf) && (cf === "tous" || e.category === cf));
+
+// Compute response rate from basic stats (sent / (sent + notified) * 100).
+function computeResponseRate(s: ClientStats): number {
+  const total = (s.month.sent ?? 0) + (s.month.rejected ?? 0) + (s.month.processed ?? 0);
+  if (total === 0) return 0;
+  return Math.round(((s.month.sent ?? 0) / total) * 100);
+}
+
+// Rate banner — shows response rate with color coding.
+function RateBanner({ rate }: { stats: ClientStats; rate: number }) {
+  const color = rate >= 70 ? "#22c55e" : rate >= 40 ? "#f59e0b" : "#ef4444";
+  const label = rate >= 70 ? "Excellent" : rate >= 40 ? "Correct" : "A ameliorer";
+  return (
+    <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "12px 20px", marginBottom: 16 }}
+      className="flex items-center justify-between">
+      <span className="text-sm text-[#9999b0]">Taux de reponse ce mois</span>
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium" style={{ color }}>{label}</span>
+        <span className="text-xl font-bold" style={{ color }}>{rate}%</span>
+      </div>
+    </div>
+  );
+}
+
+// Display helpers — formatting and label translation for stats UI.
+const CATEGORY_TYPE_LABELS = typed<Record<string, string>>(cfg.categoryTypeLabels);
+function typeLabel(key: string): string { return CATEGORY_TYPE_LABELS[key] ?? key; }
+function formatResponseTime(hours: number): string {
+  if (hours <= 0) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)}min`;
+  return `${hours.toFixed(1).replace(".0", "")}h`;
+}
+function contactDisplayName(fromName: string, fromEmail: string): string {
+  const domain = fromEmail.includes("@") ? fromEmail.split("@")[1] : fromEmail;
+  if (fromName && fromName !== fromEmail) return fromName;
+  return domain;
+}
+function emailDomain(fromEmail: string): string {
+  return fromEmail.includes("@") ? fromEmail.split("@")[1] : fromEmail;
+}
 
 // === Sub-components ===
 
@@ -112,24 +146,54 @@ function CategoryChip({ counter }: { counter: CategoryCounter }) {
   );
 }
 
-function RateBanner({ stats, rate }: { stats: ClientStats; rate: string }) {
-  const pct = rate !== "—"
-    ? Math.min(100, (stats.month.sent + stats.month.rejected) / stats.month.processed * 100) : 0;
+// Picks a color for the response rate based on the percentage value.
+function rateColor(pct: number): string {
+  if (pct >= 70) return "#34d399";
+  if (pct >= 40) return "#fb923c";
+  return "#f87171";
+}
+
+function BusinessStatCards({ stats, advanced, loadingAdvanced }: { stats: ClientStats; advanced: AdvancedStats | null; loadingAdvanced: boolean }) {
+  const responseRate = advanced?.response_rate ?? 0;
+  const rateStr      = loadingAdvanced ? "…" : (advanced ? `${responseRate}%` : "—");
+  const rateClr      = rateColor(responseRate);
+  const respTime     = loadingAdvanced ? "…" : formatResponseTime(advanced?.avg_response_time_hours ?? 0);
+  const activeCount  = loadingAdvanced ? "…" : (advanced?.active_contacts_count ?? 0);
+
   return (
-    <div style={{ background: "linear-gradient(135deg, rgba(52,211,153,0.04), #16161f 50%)", border: "1px solid #2a2a3a", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <div>
-          <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#f0f0f5" }}>Taux de traitement</p>
-          <p style={{ fontSize: "0.75rem", color: "#66667a", marginTop: 2 }}>
-            {stats.month.sent + stats.month.rejected} traités sur {stats.month.processed} reçus
-          </p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 120, height: 6, background: "#1c1c28", borderRadius: 3, overflow: "hidden" }}>
-            <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg, #34d399, #6ee7b7)", borderRadius: 3, transition: "width 0.5s" }} />
+    <div className="grid grid-cols-2 gap-4 mb-6" style={{ gridTemplateColumns: "repeat(2, 1fr)" }}>
+      <div style={{ background: `linear-gradient(135deg, ${rateClr}0a, #16161f 60%)`, border: "1px solid #2a2a3a", borderTop: `2px solid ${rateClr}`, borderRadius: 16, padding: "20px 22px" }}>
+        <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Taux de reponse</p>
+        <p style={{ fontSize: "1.85rem", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1, color: rateClr }}>{rateStr}</p>
+        <p style={{ fontSize: "0.72rem", color: "#555568", marginTop: 6 }}>{stats.month.sent} envoyés / {stats.month.sent + (advanced ? Math.round(advanced.response_rate > 0 ? stats.month.sent / (advanced.response_rate / 100) - stats.month.sent : 0) : 0)} reçus</p>
+      </div>
+      <StatCard label="Temps de reponse moyen" value={respTime} color="purple" subtitle="par thread email" />
+      <StatCard label="Emails ce mois" value={stats.month.processed} color="blue" subtitle={`+${stats.today.processed} aujourd'hui`} />
+      <div style={{ background: "linear-gradient(135deg, rgba(79,110,247,0.06), #16161f 60%)", border: "1px solid #2a2a3a", borderTop: "2px solid #4f6ef7", borderRadius: 16, padding: "20px 22px" }}>
+        <p style={{ fontSize: "0.72rem", fontWeight: 600, color: "#66667a", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 10 }}>Contacts actifs</p>
+        <p style={{ fontSize: "1.85rem", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1, color: "#f0f0f5" }}>{activeCount}</p>
+        <p style={{ fontSize: "0.72rem", color: "#555568", marginTop: 6 }}>expéditeurs distincts sur la période</p>
+      </div>
+    </div>
+  );
+}
+
+function TopContacts({ contacts }: { contacts: TopContact[] }) {
+  if (contacts.length === 0) return null;
+  return (
+    <div style={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 16, padding: "16px 20px", marginBottom: 24 }}>
+      <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-3">Top contacts</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {contacts.map((c, i) => (
+          <div key={c.from_email} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#4f6ef7", width: 16, textAlign: "right", flexShrink: 0 }}>{i + 1}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: "0.8rem", fontWeight: 600, color: "#f0f0f5", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{contactDisplayName(c.from_name, c.from_email)}</p>
+              <p style={{ fontSize: "0.7rem", color: "#66667a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>@{emailDomain(c.from_email)}</p>
+            </div>
+            <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#9999b0", flexShrink: 0 }}>{c.email_count} email{c.email_count > 1 ? "s" : ""}</span>
           </div>
-          <p style={{ fontSize: "1.5rem", fontWeight: 800, color: "#34d399", lineHeight: 1 }}>{rate}</p>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -157,10 +221,12 @@ function StatsCharts({ data, loading }: { data: AdvancedStats | null; loading: b
     );
   }
 
+  const byTypeLocalized = data.by_type.map(d => ({ ...d, type: typeLabel(d.type) }));
+
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={CHART_CARD_STYLE}>
-        <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-4">Emails par jour</p>
+        <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-4">Volume quotidien</p>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data.daily_counts} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
@@ -177,7 +243,7 @@ function StatsCharts({ data, loading }: { data: AdvancedStats | null; loading: b
       <div style={CHART_CARD_STYLE}>
         <p className="text-xs font-semibold text-[#66667a] uppercase tracking-wider mb-4">Répartition par type</p>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={data.by_type} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+          <BarChart data={byTypeLocalized} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" />
             <XAxis dataKey="type" tick={{ fill: "#66667a", fontSize: 11 }} />
             <YAxis tick={{ fill: "#66667a", fontSize: 11 }} />

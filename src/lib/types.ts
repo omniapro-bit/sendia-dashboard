@@ -132,11 +132,20 @@ export type Activity = {
 export type ActivityResponse = {
   activities: Activity[];
 };
+export type TopContact = {
+  from_email: string;
+  from_name: string;
+  email_count: number;
+};
+
 export type AdvancedStats = {
   daily_counts: DailyCount[];
   by_type: TypeCount[];
   response_rate: number;
+  avg_response_time_hours: number;
   avg_daily: number;
+  top_contacts: TopContact[];
+  active_contacts_count: number;
   trend: "up" | "down" | "stable";
 };
 
