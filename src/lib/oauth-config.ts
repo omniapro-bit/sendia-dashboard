@@ -5,7 +5,7 @@
 
 export const OAUTH_CONFIG = {
   google: {
-    clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "274786161227-iiip3l1i6bm5rnjngp9r8tsqa57ssrah.apps.googleusercontent.com",
+    clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
     redirectUri: "https://n8n.getsendia.com/webhook/oauth-callback",
     scopes: [
       "https://www.googleapis.com/auth/gmail.readonly",
@@ -17,7 +17,7 @@ export const OAUTH_CONFIG = {
     ],
   },
   outlook: {
-    clientId: process.env.NEXT_PUBLIC_OUTLOOK_CLIENT_ID || "ead1260f-07d2-4220-b215-e0af081e67fc",
+    clientId: process.env.NEXT_PUBLIC_OUTLOOK_CLIENT_ID || "",
     redirectUri: "https://n8n.getsendia.com/webhook/outlook-oauth-callback",
     scopes: "openid offline_access Mail.ReadWrite Mail.Send Calendars.ReadWrite User.Read",
   },

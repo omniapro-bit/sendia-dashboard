@@ -1,24 +1,16 @@
 # Multi-stage build for Next.js 15 dashboard
-
-# Stage 1: Dependencies
-FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN npm ci --only=production 2>/dev/null || npm install --only=production
-
-# Stage 2: Builder
+# Stage 1: Builder (install all deps + build)
 FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN npm ci 2>/dev/null || npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 3: Runner
+# Stage 2: Runner (production-only)
 FROM node:22-alpine AS runner
-RUN apk add --no-cache libc6-compat curl
+RUN apk add --no-cache libc6-compat curl dumb-init
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -38,8 +30,9 @@ USER nextjs
 
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check — start_period=30s for Next.js cold start on VPS
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3001/health || exit 1
 
-CMD ["npm", "start", "--", "-p", "3001"]
+# Use dumb-init for proper signal forwarding (SIGTERM → Node.js)
+CMD ["dumb-init", "node", "node_modules/.bin/next", "start", "-p", "3001"]

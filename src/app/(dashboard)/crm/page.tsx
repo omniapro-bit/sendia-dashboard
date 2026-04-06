@@ -364,18 +364,24 @@ export default function CrmPage() {
   const [interactions, setInteractions] = useState<CrmInteraction[]>([]);
   const [selected, setSelected] = useState<CrmContact | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [tagFilter, setTagFilter] = useState("ALL");
   const { toast } = useToast();
+  // Debounce search input — wait 400ms after last keystroke before firing API call
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
   const load = useCallback(async () => {
     try {
       const [s, c, d, i] = await Promise.all([
-        crmApi.getStats(), crmApi.getContacts({ search: search || undefined, tag: tagFilter !== "ALL" ? tagFilter : undefined, limit: 100 }),
+        crmApi.getStats(), crmApi.getContacts({ search: debouncedSearch || undefined, tag: tagFilter !== "ALL" ? tagFilter : undefined, limit: 100 }),
         crmApi.getDeals(), crmApi.getInteractions({ limit: 50 }),
       ]);
       setStats(s); setContacts(c.contacts); setDeals(d.deals); setInteractions(i.interactions);
     } catch (err: any) { toast(err.message || "Erreur CRM", "error"); }
     finally { setLoading(false); }
-  }, [search, tagFilter, toast]);
+  }, [debouncedSearch, tagFilter, toast]);
   useEffect(() => { load(); }, [load]);
   async function moveDeal(id: string, stage: string) {
     try { await crmApi.updateDeal(id, { stage }); toast(`${STAGE_LABELS[stage] ?? stage}`, "success"); load(); }

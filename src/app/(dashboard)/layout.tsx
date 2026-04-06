@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Sidebar } from "@/components/Sidebar";
@@ -10,6 +10,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const billingChecked = useRef(false);
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -25,7 +26,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
     // Check trial expiration — redirect to billing if expired (but not if already on billing)
-    if (pathname !== "/billing") {
+    // Only check once on mount, not on every pathname change (avoid N API calls on navigation)
+    if (pathname !== "/billing" && !billingChecked.current) {
+      billingChecked.current = true;
       api.getBillingStatus().then((s: any) => {
         if (s?.status === "expired" || s?.status === "canceled" || s?.status === "pending") {
           router.replace("/billing");
@@ -56,7 +59,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#12121a] border-b border-[#2a2a3a]">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg text-[#9999b0] hover:text-[#f0f0f5] hover:bg-[#1c1c28] transition-colors" aria-label="Ouvrir le menu">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg text-[#9999b0] hover:text-[#f0f0f5] hover:bg-[#1c1c28] transition-colors" aria-label={sidebarOpen ? "Fermer le menu" : "Ouvrir le menu"} aria-expanded={sidebarOpen}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
